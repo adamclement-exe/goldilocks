@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goldilocks: A Scrum Adventure</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- DoD Choice Modal Styles -->
+    <style>
+        .dod-option { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 4px; }
+        .dod-option label { display: block; margin-left: 5px; cursor: pointer; }
+        .dod-option input[type="radio"] { margin-right: 5px; vertical-align: middle;}
+        .dod-option label strong { font-size: 1.1em; }
+        .dod-option small { display: block; color: #555; margin-left: 20px; font-size: 0.9em; margin-top: 3px;}
+        #dod-form button { margin-top: 15px; }
+    </style>
 </head>
 <body>
     <header>
@@ -30,22 +39,21 @@
         <section id="kanban-board" class="kanban-board-container">
             <div class="kanban-column" id="col-ready">
                 <h3>Sprint Backlog (Ready)</h3>
-                <div id="sprint-backlog-list" class="story-list" data-column-id="ready">
-                    <!-- Stories selected for the sprint -->
-                </div>
+                <div id="sprint-backlog-list" class="story-list" data-column-id="ready"></div>
                 <p>Selected: <span id="sprint-selected-points">0</span> points</p>
             </div>
             <div class="kanban-column" id="col-inprogress">
-                <h3>In Progress</h3>
-                <div id="inprogress-list" class="story-list" data-column-id="inprogress">
-                    <!-- Stories being worked on -->
-                </div>
+                <h3>In Progress (Dev)</h3> <!-- Clarified column purpose -->
+                <div id="inprogress-list" class="story-list" data-column-id="inprogress"></div>
+            </div>
+            <!-- NEW Testing Column -->
+            <div class="kanban-column" id="col-testing">
+                <h3>Testing</h3>
+                <div id="testing-list" class="story-list" data-column-id="testing"></div>
             </div>
             <div class="kanban-column" id="col-done">
                 <h3>Done</h3>
-                <div id="done-list" class="story-list" data-column-id="done">
-                    <!-- Completed stories -->
-                </div>
+                <div id="done-list" class="story-list" data-column-id="done"></div>
             </div>
         </section>
 
@@ -61,9 +69,41 @@
     </main>
 
     <!-- Modals -->
+
+    <!-- DoD Choice Modal (Show at Game Start) -->
+    <dialog id="dod-choice-modal">
+        <h2>Choose Your Goal (Definition of Done)</h2>
+        <p>Select the level of completeness you aim for by the end of Sprint 3. Meeting your goal grants bonus points!</p>
+        <form id="dod-form">
+            <div class="dod-option">
+                <input type="radio" id="dod-easy" name="dod-level" value="easy" checked>
+                <label for="dod-easy">
+                    <strong>Easy - Core Plot:</strong> Complete the essential story beats. (+<span class="bonus-points-easy">?</span> pts)
+                    <small>Focus: Basic beginning, middle, and end text.</small>
+                </label>
+            </div>
+            <div class="dod-option">
+                <input type="radio" id="dod-medium" name="dod-level" value="medium">
+                <label for="dod-medium">
+                    <strong>Medium - Illustrated Story:</strong> Complete the core plot with key illustrations and intro/conclusion. (+<span class="bonus-points-medium">?</span> pts)
+                    <small>Focus: Core text + important visuals.</small>
+                </label>
+            </div>
+            <div class="dod-option">
+                <input type="radio" id="dod-hard" name="dod-level" value="hard">
+                <label for="dod-hard">
+                    <strong>Hard - Polished & Marketable:</strong> Complete a rich story with detailed text, visuals, cover, and marketing. (+<span class="bonus-points-hard">?</span> pts)
+                    <small>Focus: High-quality choices, visuals, and extras.</small>
+                </label>
+            </div>
+            <button type="submit" id="confirm-dod-btn">Set Goal & Start Game</button>
+        </form>
+    </dialog>
+
     <dialog id="learning-modal">
         <h2>Scrum & Kanban Basics</h2>
         <p>Content about Product Backlog, Sprints, Kanban etc. goes here.</p>
+        <!-- TODO: Add actual learning content -->
         <button class="close-modal-btn">Close</button>
     </dialog>
 
@@ -88,29 +128,25 @@
         <button id="confirm-choice-btn">Confirm Choice</button>
      </dialog>
 
-    <!-- NEW Worker Assignment Modal -->
+    <!-- Worker Assignment Modal (Day 1) -->
     <dialog id="worker-assignment-modal">
-        <h2>Assign Workers for Sprint <span class="modal-sprint-number">1</span></h2>
+        <h2>Assign Workers for Sprint <span class="modal-sprint-number">1</span> - Day 1</h2>
         <p>Assign available workers to stories in the Sprint Backlog.</p>
-        <div id="assignment-list">
-            <!-- Stories ready for assignment will be listed here -->
-            <p>Loading stories...</p>
-        </div>
-        <div id="assignment-summary">
-            <!-- Optional: Show summary of assignments -->
-        </div>
-        <button id="confirm-assignments-btn">Confirm Assignments & Start Sprint Work</button>
-        <button class="close-modal-btn">Cancel</button> <!-- Consider behavior: back to planning? -->
+        <div id="assignment-list"></div>
+        <button id="confirm-assignments-btn">Confirm Assignments & Start Day 1 Work</button>
+        <button class="close-modal-btn">Cancel</button>
     </dialog>
 
+    <!-- Daily Scrum Modal - Now used for Day 2 Reassignment -->
     <dialog id="daily-scrum-modal">
-        <h2>Daily Scrum - Day <span id="daily-scrum-day">1</span></h2>
-        <p>Review obstacles and proceed with the work day.</p>
+        <h2>Daily Scrum & Reassignment - Day <span id="daily-scrum-day">2</span></h2>
+        <p>Review obstacles and reassign workers if needed for Day 2.</p>
         <div id="obstacle-display" style="color: orange; margin-top: 10px;"></div>
-        <div id="daily-scrum-assignments"> <!-- Can show read-only assignments or remove -->
-             <p>Workers will proceed with their assigned tasks.</p>
+        <!-- Reassignment UI will go here -->
+        <div id="reassignment-list" style="margin-top: 15px;">
+            <p>Loading current assignments...</p>
         </div>
-        <button id="proceed-day-btn">Ok, Proceed with Work</button> <!-- UPDATED Button -->
+        <button id="confirm-reassignments-btn">Confirm Assignments & Start Day 2 Work</button>
     </dialog>
 
     <dialog id="sprint-review-modal">
@@ -135,13 +171,15 @@
                 <option>Team collaboration</option>
                 <option>Overcame obstacles</option>
                  <option>Efficient assignments</option>
+                 <option>Testing caught issues</option>
             </select><br><br>
             <label>What could be improved?</label>
             <select id="retro-improve">
                 <option>Estimation accuracy</option>
                 <option>Worker assignment strategy</option>
                 <option>Handling interruptions</option>
-                 <option>Balancing workload</option>
+                 <option>Balancing workload (Dev vs Test)</option>
+                 <option>Flow through testing</option>
             </select><br><br>
             <label>What will we change next Sprint?</label>
             <select id="retro-change">
@@ -149,6 +187,7 @@
                 <option>Assign experts strategically</option>
                 <option>Communicate blockers faster</option>
                  <option>Pair juniors with seniors</option>
+                 <option>Prioritize testing earlier</option>
             </select><br><br>
             <button type="submit">Finish Retrospective & Start Next Sprint</button>
         </form>
@@ -158,7 +197,7 @@
     <dialog id="final-storybook-modal">
         <h2>Your Goldilocks Storybook!</h2>
         <div id="final-storybook-pages">
-            <!-- Generated pages go here -->
+            <!-- Generated pages go here, including DoD status -->
         </div>
         <button id="download-book-btn">Download/Screenshot</button>
         <button id="play-again-btn">Play Again</button>
@@ -167,17 +206,24 @@
 
     <!-- Story Card Template -->
     <template id="story-card-template">
-        <article class="story-card"> <!-- Removed draggable -->
+        <article class="story-card">
             <h4 class="story-title">Story Title</h4>
-            <p class="story-desc">Description snippet...</p>
             <div class="story-meta">
                 <span>Effort: <span class="story-effort">?</span></span>
                 <span>Value: <span class="story-value">?</span>⭐</span>
             </div>
             <div class="story-tags"></div>
             <div class="story-assignment">Assigned: <span class="story-worker">None</span></div>
+            <!-- Progress Bars -->
             <div class="story-progress" style="display: none;">
-                 <progress value="0" max="100"></progress>
+                 <label>Dev:</label>
+                 <progress class="dev-progress" value="0" max="100"></progress>
+                 <span class="dev-points-remaining"></span> <!-- Show points -->
+            </div>
+             <div class="story-testing-progress" style="display: none;">
+                 <label>Test:</label>
+                 <progress class="test-progress" value="0" max="100"></progress>
+                  <span class="test-points-remaining"></span> <!-- Show points -->
             </div>
         </article>
     </template>
@@ -195,7 +241,6 @@
 
     <!-- External Libraries -->
     <script src="vendor/sortable.min.js"></script>
-
     <!-- Game Scripts (Module Type) -->
     <script type="module" src="js/main.js"></script>
 </body>
