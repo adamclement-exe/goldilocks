@@ -6,7 +6,7 @@
 }
 
 body {
-    font-family: sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
     line-height: 1.6;
     background-color: #f4f7f6;
     color: #333;
@@ -16,6 +16,12 @@ body {
 h1, h2, h3, h4 {
     margin-bottom: 0.75em;
     color: #2c3e50;
+    font-weight: 600;
+}
+
+h1 {
+    text-align: center;
+    color: #34495e;
 }
 
 button {
@@ -27,23 +33,32 @@ button {
     color: white;
     margin: 5px;
     font-size: 0.9em;
+    transition: background-color 0.2s ease;
 }
 
 button:hover {
     background-color: #2980b9;
 }
+button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
 
 dialog {
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 20px;
-    min-width: 300px;
-    max-width: 600px;
+    padding: 25px;
+    min-width: 320px;
+    max-width: 650px; /* Slightly wider for assignment lists */
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.5);
+}
+dialog h2 {
+    margin-top: 0;
+    color: #3498db;
 }
 
 /* Header & Sprint Info */
@@ -53,69 +68,114 @@ header {
     border-radius: 5px;
     margin-bottom: 20px;
     display: flex;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
     justify-content: space-between;
     align-items: center;
+    border-bottom: 3px solid #3498db;
 }
+header h1 {
+    flex-basis: 100%; /* Take full width initially */
+    margin-bottom: 10px;
+    text-align: left;
+}
+@media (min-width: 600px) {
+    header h1 {
+        flex-basis: auto; /* Allow side-by-side on larger screens */
+        margin-bottom: 0;
+    }
+}
+
 
 #sprint-info {
     text-align: right;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#sprint-info h2 {
+    font-size: 1.2em;
+    margin-bottom: 8px;
+    color: #2c3e50;
 }
 
 #sprint-info p {
     margin-bottom: 5px;
-    font-size: 0.9em;
+    font-size: 0.95em;
+    color: #555;
 }
+#sprint-info p span {
+    font-weight: 600;
+    color: #333;
+}
+
 
 /* Game Layout */
 .game-container {
     display: flex;
-    gap: 20px;
+    gap: 15px;
 }
 
 #product-backlog-column {
     flex: 1;
-    min-width: 200px;
+    min-width: 180px;
 }
 
 .kanban-board-container {
-    flex: 3;
+    flex: 4;
     display: flex;
-    gap: 15px;
+    gap: 10px;
 }
 
 #team-status {
     flex: 1;
-    min-width: 220px; /* Slightly wider for more worker details */
+    min-width: 200px;
     background-color: #ffffff;
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    align-self: flex-start; /* Keep aligned to top */
+    align-self: flex-start;
 }
+#team-status h2 {
+    font-size: 1.2em;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
 
 /* Kanban Columns & Lists */
 .kanban-column-container,
 .kanban-column {
     background-color: #dfe6e9;
-    padding: 15px;
+    padding: 10px;
     border-radius: 5px;
     height: fit-content;
-    min-height: 400px; /* Ensure columns have some height */
+    min-height: 450px; /* Increased min-height */
 }
 
 .kanban-column {
-     flex: 1; /* Make columns share space equally */
+     flex: 1;
      display: flex;
-     flex-direction: column; /* Stack title above list */
+     flex-direction: column;
+}
+.kanban-column h3 {
+    font-size: 1.1em;
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #bdc3c7;
+    color: #34495e;
 }
 
 
 .story-list {
-    min-height: 150px; /* Minimum height for drop zones */
-    background-color: #f0f0f0; /* Slight background for visibility */
+    min-height: 150px;
+    background-color: #f0f0f0;
     border-radius: 3px;
     padding: 5px;
-    flex-grow: 1; /* Allow list to grow */
+    flex-grow: 1;
+    border: 1px dashed #ccc; /* Add border to lists */
 }
 
 /* Story Card Styling */
@@ -123,51 +183,54 @@ header {
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 8px;
-    /* cursor: grab; REMOVED */
-    cursor: default; /* Default cursor */
+    padding: 8px;
+    margin-bottom: 6px;
+    cursor: default;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 0.9em;
+    transition: border 0.2s ease; /* For blocked status */
 }
-
-/* REMOVED .story-card:active { cursor: grabbing; } */
 
 .story-card h4 {
-    margin-bottom: 5px;
+    margin-bottom: 4px;
     font-size: 1em;
-}
-
-.story-desc {
-    font-size: 0.85em;
-    color: #555;
-    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
 }
 
 .story-meta {
-    font-size: 0.8em;
+    font-size: 0.9em;
     color: #777;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
+}
+.story-meta span span { /* Target the inner span for points/stars */
+    font-weight: bold;
+    color: #555;
 }
 
+
 .story-tags {
-    margin-bottom: 5px;
+    margin-bottom: 4px;
+    line-height: 1.5;
 }
 
 .tag {
     display: inline-block;
-    font-size: 0.75em;
-    padding: 2px 6px;
+    font-size: 0.8em;
+    padding: 1px 5px;
     border-radius: 10px;
     color: white;
-    margin-right: 4px;
+    margin-right: 3px;
+    margin-bottom: 2px;
 }
 
+/* Tag Colors */
 .tag-visual { background-color: #3498db; }
 .tag-text { background-color: #2ecc71; }
 .tag-activity { background-color: #f1c40f; color: #333; }
-.tag-marketing { background-color: #9b59b6; }
+.tag-marketing { background-color: #9b59b6; } /* Kept in case needed later */
 .tag-design { background-color: #e74c3c; }
 .tag-character { background-color: #1abc9c; }
 .tag-plot { background-color: #e67e22; }
@@ -175,19 +238,74 @@ header {
 .tag-dialogue { background-color: #34495e; }
 .tag-climax { background-color: #c0392b; }
 .tag-resolution { background-color: #27ae60; }
+.tag-testing { background-color: #f39c12; } /* Testing tag color */
 
 
 .story-assignment {
-    font-size: 0.8em;
+    font-size: 0.9em;
     color: #888;
-    margin-top: 5px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+.story-assignment .story-worker {
+    font-style: italic;
+    color: #555;
 }
 
-.story-progress progress {
-    width: 100%;
-    height: 8px;
+/* Progress Bar Styling */
+.story-progress, .story-testing-progress {
     margin-top: 5px;
+    font-size: 0.85em;
 }
+.story-progress label, .story-testing-progress label {
+    display: inline-block;
+    width: 35px;
+    color: #555;
+    font-weight: 500;
+}
+.story-progress progress, .story-testing-progress progress {
+    width: calc(100% - 90px); /* Adjusted width */
+    height: 10px;
+    vertical-align: middle;
+    margin: 0 5px;
+    border-radius: 5px;
+    overflow: hidden; /* Ensure border radius applies */
+}
+/* Progress bar colors */
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 5px;
+}
+progress.dev-progress::-webkit-progress-value {
+    background-color: #2ecc71; /* Green for dev */
+    border-radius: 5px;
+}
+progress.test-progress::-webkit-progress-value {
+    background-color: #f39c12; /* Orange for testing */
+    border-radius: 5px;
+}
+/* Firefox specific */
+progress.dev-progress::-moz-progress-bar {
+    background-color: #2ecc71;
+    border-radius: 5px;
+}
+progress.test-progress::-moz-progress-bar {
+    background-color: #f39c12;
+    border-radius: 5px;
+}
+
+
+/* Style for points remaining spans */
+.dev-points-remaining, .test-points-remaining {
+    display: inline-block;
+    width: 40px;
+    text-align: right;
+    color: #555;
+    font-weight: 500;
+    font-size: 0.9em;
+    vertical-align: middle;
+}
+
 
 /* SortableJS Helper Class (Only for backlog now) */
 .sortable-ghost {
@@ -202,79 +320,138 @@ header {
     margin-bottom: 5px;
     border-radius: 3px;
     font-size: 0.9em;
+    border-left: 3px solid #bdc3c7; /* Default border */
+    transition: border-color 0.3s ease;
 }
-.worker-avatar { /* Basic placeholder */
+.worker-status[data-state="idle"] { border-left-color: #2ecc71; }
+.worker-status[data-state="working"] { border-left-color: #3498db; }
+.worker-status[data-state="unavailable"] { border-left-color: #e74c3c; }
+
+.worker-avatar {
     display: inline-block;
     width: 15px;
     height: 15px;
-    /* background-color: #bdc3c7; */ /* Color set by JS */
     border-radius: 50%;
     margin-right: 5px;
     vertical-align: middle;
+    border: 1px solid #ccc;
 }
 
 /* Assignment Modal Item Spacing */
-.assignment-item {
+.assignment-item, .reassignment-item {
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
 }
-.assignment-item label {
+.assignment-item label, .reassignment-item label {
     margin-right: 5px;
+    font-weight: 500;
 }
-.assignment-item select {
-    padding: 3px;
+.assignment-item select, .reassignment-item select {
+    padding: 4px 6px; /* Slightly more padding */
     margin-left: 5px;
+    min-width: 180px; /* Wider dropdown */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.reassignment-current {
+    font-style: italic;
+    color: #666;
+    margin-left: 10px;
+    font-size: 0.9em;
 }
 
 
 /* Final Storybook Preview */
 #review-storybook-preview, #final-storybook-pages {
     border: 1px dashed #ccc;
-    padding: 10px;
+    padding: 15px; /* More padding */
     min-height: 100px;
     margin-top: 10px;
     background-color: #fff;
-    display: flex; /* Arrange pages side-by-side if needed */
+    display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 15px; /* More gap */
 }
 
 .storybook-page-preview {
     border: 1px solid #eee;
-    padding: 5px;
+    padding: 10px; /* More padding */
     text-align: center;
-    max-width: 150px; /* Limit preview size */
+    max-width: 180px; /* Slightly larger preview */
+    background-color: #fdfdfd;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
+.storybook-page-preview h5 {
+    font-size: 1em;
+    margin-bottom: 8px;
+    color: #333;
 }
 
 .storybook-page-preview img {
     max-width: 100%;
     height: auto;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    border-radius: 3px;
 }
 
 .storybook-page-preview p {
-    font-size: 0.8em;
+    font-size: 0.85em; /* Slightly larger text */
+    color: #444;
 }
 
-/* Responsive adjustments (basic example) */
-@media (max-width: 992px) { /* Adjust breakpoint */
+/* DoD Status in Final Modal */
+#final-storybook-pages > div:first-child { /* Target the DoD status div */
+     width: 100%; /* Make it full width */
+     border: 1px solid #ccc;
+     background-color: #f9f9f9;
+     border-radius: 4px;
+     padding: 15px;
+     margin-bottom: 20px;
+}
+#final-storybook-pages > div:first-child h3 {
+    margin-top: 0;
+    color: #3498db;
+}
+#final-storybook-pages > div:first-child ul {
+    margin-top: 5px;
+    padding-left: 20px;
+    list-style: disc;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
     .game-container {
         flex-direction: column;
     }
-    .kanban-board-container {
-       flex-direction: row; /* Keep side-by-side longer */
-       overflow-x: auto; /* Allow horizontal scroll if needed */
+     .kanban-board-container {
+       flex-direction: row;
+       overflow-x: auto;
+    }
+    .kanban-column {
+        min-width: 200px;
     }
      #team-status {
-        min-width: unset; /* Allow it to shrink */
+        min-width: unset;
         width: 100%;
     }
 }
 
 @media (max-width: 768px) {
     .kanban-board-container {
-        flex-direction: column; /* Stack columns on small screens */
+        flex-direction: column;
         overflow-x: unset;
     }
+    .kanban-column {
+        min-width: unset;
+    }
+    header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    header h1 { text-align: center; }
+    #sprint-info { text-align: center; margin-top: 10px; }
 }
