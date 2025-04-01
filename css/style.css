@@ -1,3 +1,5 @@
+/* --- START OF FILE style.css --- */
+
 /* Basic Reset & Body */
 * {
     box-sizing: border-box;
@@ -49,7 +51,7 @@ dialog {
     border-radius: 8px;
     padding: 25px;
     min-width: 320px;
-    max-width: 650px; /* Slightly wider for assignment lists */
+    max-width: 700px; /* Slightly wider for multi-assign checkboxes */
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
@@ -68,19 +70,19 @@ header {
     border-radius: 5px;
     margin-bottom: 20px;
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     border-bottom: 3px solid #3498db;
 }
 header h1 {
-    flex-basis: 100%; /* Take full width initially */
+    flex-basis: 100%;
     margin-bottom: 10px;
     text-align: left;
 }
 @media (min-width: 600px) {
     header h1 {
-        flex-basis: auto; /* Allow side-by-side on larger screens */
+        flex-basis: auto;
         margin-bottom: 0;
     }
 }
@@ -135,18 +137,18 @@ header h1 {
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    align-self: flex-start; /* Keep team status aligned to top */
-    max-height: calc(100vh - 150px); /* Example max height */
-    overflow-y: auto; /* Allow scrolling if team is large */
+    align-self: flex-start;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
 }
 #team-status h2 {
     font-size: 1.2em;
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
-    position: sticky; /* Keep header visible */
+    position: sticky;
     top: 0;
-    background-color: #ffffff; /* Ensure background */
-    z-index: 1; /* Keep above scrolling content */
+    background-color: #ffffff;
+    z-index: 1;
 }
 
 
@@ -157,7 +159,7 @@ header h1 {
     padding: 10px;
     border-radius: 5px;
     height: fit-content;
-    min-height: 450px; /* Increased min-height */
+    min-height: 450px;
 }
 
 .kanban-column {
@@ -179,19 +181,19 @@ header h1 {
     font-size: 0.85em;
     font-weight: normal;
     color: #555;
-    margin-left: 5px; /* Space after title */
-    display: inline-block; /* Keep on same line */
-    background-color: #ecf0f1; /* Subtle background */
+    margin-left: 5px;
+    display: inline-block;
+    background-color: #ecf0f1;
     padding: 1px 6px;
     border-radius: 8px;
     border: 1px solid #bdc3c7;
-    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 .wip-limit.exceeded {
-    color: white; /* White text on red */
+    color: white;
     font-weight: bold;
-    background-color: #e74c3c; /* Red background */
-    border-color: #c0392b; /* Darker red border */
+    background-color: #e74c3c;
+    border-color: #c0392b;
 }
 
 
@@ -201,9 +203,9 @@ header h1 {
     border-radius: 3px;
     padding: 5px;
     flex-grow: 1;
-    border: 1px dashed #ccc; /* Add border to lists */
-    max-height: calc(100vh - 250px); /* Prevent infinite growth */
-    overflow-y: auto; /* Allow scrolling within list */
+    border: 1px dashed #ccc;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
 }
 
 /* Story Card Styling */
@@ -216,22 +218,20 @@ header h1 {
     cursor: default;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     font-size: 0.9em;
-    transition: border-left-color 0.3s ease, box-shadow 0.3s ease; /* Add shadow/border transition */
-    position: relative; /* Needed for blocker info */
-    border-left-width: 4px; /* Add space for potential color indicator */
-    border-left-color: transparent; /* Default transparent */
+    transition: border-left-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    border-left-width: 4px;
+    border-left-color: transparent;
 }
 
-/* Style for blocked stories using border */
-.story-card[data-blocked="true"] { /* Target blocked stories via data attribute */
-    border-left-color: orange !important; /* Use left border for blocker, !important if needed */
-    box-shadow: 0 2px 6px rgba(255, 165, 0, 0.3); /* Orange glow */
+.story-card[data-blocked="true"] {
+    border-left-color: orange !important;
+    box-shadow: 0 2px 6px rgba(255, 165, 0, 0.3);
 }
-/* Style for aging stories */
-.story-card .story-age.aging { /* Target the span with aging class */
+.story-card .story-age.aging {
     border: 1px solid #e74c3c;
-    background-color: #fbeeeE; /* Light red background for aging */
-    color: #c0392b; /* Darker red text */
+    background-color: #fbeeef;
+    color: #c0392b;
 }
 
 
@@ -247,15 +247,14 @@ header h1 {
     color: #777;
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap; /* Allow wrapping if needed */
+    flex-wrap: wrap;
     margin-bottom: 4px;
-    gap: 5px 10px; /* Add row and column gap between items */
+    gap: 5px 10px;
 }
-.story-meta span span { /* Target the inner span for points/stars */
+.story-meta span span {
     font-weight: bold;
     color: #555;
 }
-/* WIP Aging Style */
 .story-age {
     font-size: 0.8em;
     color: #999;
@@ -284,7 +283,7 @@ header h1 {
 .tag-visual { background-color: #3498db; }
 .tag-text { background-color: #2ecc71; }
 .tag-activity { background-color: #f1c40f; color: #333; }
-.tag-marketing { background-color: #9b59b6; } /* Kept in case needed later */
+.tag-marketing { background-color: #9b59b6; }
 .tag-design { background-color: #e74c3c; }
 .tag-character { background-color: #1abc9c; }
 .tag-plot { background-color: #e67e22; }
@@ -292,19 +291,37 @@ header h1 {
 .tag-dialogue { background-color: #34495e; }
 .tag-climax { background-color: #c0392b; }
 .tag-resolution { background-color: #27ae60; }
-.tag-testing { background-color: #f39c12; } /* Testing tag color */
+.tag-testing { background-color: #f39c12; }
 
 
+/* Worker Assignment Styling */
 .story-assignment {
     font-size: 0.9em;
     color: #888;
     margin-top: 4px;
     margin-bottom: 4px;
+    line-height: 1.6; /* Better spacing for pills */
 }
+/* Target the span holding the pills */
 .story-assignment .story-worker {
-    font-style: italic;
-    color: #555;
+    font-style: normal; /* Remove italic */
+    color: inherit; /* Inherit color from parent */
 }
+
+/* Worker Pill Styling */
+.worker-pill {
+    display: inline-block;
+    font-size: 0.8em;
+    padding: 1px 6px;
+    border-radius: 10px;
+    color: white;
+    margin-right: 3px;
+    margin-bottom: 3px; /* Spacing between pills */
+    font-weight: 500;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2); /* Subtle shadow */
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
 
 /* Blocker Info Styling */
 .blocker-info {
@@ -375,7 +392,7 @@ progress.test-progress::-moz-progress-bar {
 }
 
 
-/* SortableJS Helper Class (Only for backlog now) */
+/* SortableJS Helper Class (Not used visually now) */
 .sortable-ghost {
     opacity: 0.4;
     background: #c8ebfb;
@@ -388,7 +405,7 @@ progress.test-progress::-moz-progress-bar {
     margin-bottom: 5px;
     border-radius: 3px;
     font-size: 0.9em;
-    border-left: 4px solid #bdc3c7; /* Default border, slightly thicker */
+    border-left: 4px solid #bdc3c7;
     transition: border-color 0.3s ease;
 }
 /* Update border colors based on data-state attribute set by JS */
@@ -407,10 +424,9 @@ progress.test-progress::-moz-progress-bar {
     vertical-align: middle;
     border: 1px solid #ccc;
 }
-/* Worker State Text Colors are now set by JS inline style based on state */
 
 
-/* Assignment Modal Item Spacing */
+/* Assignment/Reassignment Modal Item Spacing & Styling */
 .assignment-item, .reassignment-item, .blocker-assignment-item {
     margin-bottom: 15px;
     padding-bottom: 10px;
@@ -420,80 +436,135 @@ progress.test-progress::-moz-progress-bar {
     border-bottom: none; /* Remove border from last item */
 }
 
-.assignment-item label, .reassignment-item label, .blocker-assignment-item label {
+/* Label for the whole section (e.g., "Assign Workers:") */
+.assignment-item > label, .reassignment-item > label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Container for checkboxes */
+.worker-checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 15px; /* Row and column gap */
+    padding-left: 10px; /* Indent checkboxes slightly */
+}
+
+/* Individual checkbox + label wrapper */
+.worker-checkbox-option {
+    display: flex; /* Align checkbox and label */
+    align-items: center;
+}
+.worker-checkbox-option input[type="checkbox"] {
+    margin-right: 5px;
+    cursor: pointer;
+}
+.worker-checkbox-option label {
+    font-weight: normal; /* Normal weight for worker names */
+    cursor: pointer;
+}
+.worker-checkbox-option input[type="checkbox"]:disabled + label {
+    color: #aaa; /* Gray out text for disabled workers */
+    cursor: not-allowed;
+    text-decoration: line-through; /* Optional: strike-through */
+}
+
+/* Blocker assignment select styling (remains mostly the same) */
+.blocker-assignment-item label {
     margin-right: 5px;
     font-weight: 500;
 }
-.assignment-item select, .reassignment-item select, .blocker-assignment-item select {
-    padding: 4px 6px; /* Slightly more padding */
+.blocker-assignment-item select {
+    padding: 4px 6px;
     margin-left: 5px;
-    min-width: 180px; /* Wider dropdown */
+    min-width: 180px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
-/* Style disabled options */
-.assignment-item select option:disabled,
-.reassignment-item select option:disabled,
 .blocker-assignment-item select option:disabled {
     color: #aaa;
     background-color: #f8f8f8;
 }
 
-.reassignment-current {
-    font-style: italic;
-    color: #666;
-    margin-left: 10px;
-    font-size: 0.9em;
+/* Styling for Daily Scrum Reassignment Sections */
+.reassignment-item .current-workers-list,
+.reassignment-item .add-workers-list {
+    margin-top: 8px;
+    padding-left: 10px;
 }
+.reassignment-item .current-workers-list label,
+.reassignment-item .add-workers-list label {
+    font-weight: 500; /* Slightly bolder label for sections */
+    display: block;
+    margin-bottom: 5px;
+}
+/* Styling for the "keep" checkbox/label in reassignment */
+.worker-remove-label {
+    display: inline-flex; /* Align checkbox and pill */
+    align-items: center;
+    margin-left: 3px;
+    margin-right: 10px; /* Space between workers */
+    cursor: pointer;
+}
+.worker-remove-label input[type="checkbox"] {
+    margin-right: 4px;
+    cursor: pointer;
+}
+/* Make the worker pill part of the label */
+.worker-remove-label .worker-pill {
+    vertical-align: middle;
+}
+
 
 /* Retrospective Text Areas */
 #retro-form textarea {
-    width: 95%; /* Take most of modal width */
+    width: 95%;
     min-height: 60px;
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    margin-bottom: 10px; /* Space below textarea */
-    font-family: inherit; /* Use body font */
+    margin-bottom: 10px;
+    font-family: inherit;
     font-size: 0.95em;
-    display: block; /* Ensure it takes full width */
+    display: block;
     margin-left: auto;
     margin-right: auto;
 }
 #retro-form label {
-    display: block; /* Put label on its own line */
+    display: block;
     margin-bottom: 3px;
     font-weight: 600;
-    margin-left: 2.5%; /* Align with textarea */
+    margin-left: 2.5%;
 }
 
 
 /* Final Storybook Preview */
 #review-storybook-preview, #final-storybook-pages {
     border: 1px dashed #ccc;
-    padding: 15px; /* More padding */
+    padding: 15px;
     min-height: 100px;
     margin-top: 10px;
     background-color: #fff;
     display: flex;
     flex-wrap: wrap;
-    gap: 15px; /* More gap */
-    max-height: 400px; /* Limit height in modals */
-    overflow-y: auto; /* Add scroll if needed */
+    gap: 15px;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .storybook-page-preview {
     border: 1px solid #eee;
-    padding: 10px; /* More padding */
+    padding: 10px;
     text-align: center;
-    max-width: 180px; /* Slightly larger preview */
+    max-width: 180px;
     background-color: #fdfdfd;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     border-radius: 4px;
-    display: flex; /* Use flexbox for vertical centering */
+    display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Space out content */
-    min-height: 180px; /* Give pages a min height */
+    justify-content: space-between;
+    min-height: 180px;
 }
 
 .storybook-page-preview h5 {
@@ -507,24 +578,24 @@ progress.test-progress::-moz-progress-bar {
     height: auto;
     margin-bottom: 8px;
     border-radius: 3px;
-    object-fit: contain; /* Ensure image fits well */
-    max-height: 100px; /* Limit image height */
-    flex-shrink: 0; /* Prevent image shrinking */
+    object-fit: contain;
+    max-height: 100px;
+    flex-shrink: 0;
 }
 
 .storybook-page-preview p {
-    font-size: 0.85em; /* Slightly larger text */
+    font-size: 0.85em;
     color: #444;
-    flex-grow: 1; /* Allow text to take remaining space */
-    margin-top: auto; /* Push text towards bottom if needed */
-    text-align: left; /* Align text left within preview */
-    hyphens: auto; /* Allow hyphenation */
-    word-break: break-word; /* Break long words */
+    flex-grow: 1;
+    margin-top: auto;
+    text-align: left;
+    hyphens: auto;
+    word-break: break-word;
 }
 
 /* DoD Status in Final Modal */
 #final-storybook-pages > div:first-child { /* Target the DoD status div */
-     width: 100%; /* Make it full width */
+     width: 100%;
      border: 1px solid #ccc;
      background-color: #f9f9f9;
      border-radius: 4px;
@@ -548,30 +619,27 @@ progress.test-progress::-moz-progress-bar {
         flex-direction: column;
     }
      .kanban-board-container {
-       flex-direction: row; /* Keep row layout */
-       overflow-x: auto; /* Allow horizontal scroll for board */
-       padding-bottom: 10px; /* Add padding for scrollbar */
+       flex-direction: row;
+       overflow-x: auto;
+       padding-bottom: 10px;
     }
     .kanban-column {
-        min-width: 200px; /* Ensure columns have min width when scrolling */
-        max-width: 280px; /* Optional: Prevent columns from becoming too wide */
+        min-width: 200px;
+        max-width: 280px;
     }
      #team-status {
         min-width: unset;
         width: 100%;
-        max-height: 250px; /* Adjust height on smaller screens */
+        max-height: 250px;
     }
     .story-list {
-         max-height: 300px; /* Adjust list height */
+         max-height: 300px;
     }
 }
 
 @media (max-width: 768px) {
-    .kanban-board-container {
-        /* Keep horizontal scroll from previous breakpoint */
-    }
     .kanban-column {
-        min-width: 180px; /* Slightly smaller min-width */
+        min-width: 180px;
     }
     header {
         flex-direction: column;
@@ -580,10 +648,10 @@ progress.test-progress::-moz-progress-bar {
     header h1 { text-align: center; }
     #sprint-info { text-align: center; margin-top: 10px; }
     #team-status {
-         max-height: 200px; /* Further adjust height */
+         max-height: 200px;
     }
     dialog {
-        min-width: 90%; /* Make modals wider on small screens */
+        min-width: 90%;
         max-width: 95%;
     }
      #retro-form textarea, #retro-form label {
@@ -591,4 +659,12 @@ progress.test-progress::-moz-progress-bar {
         margin-left: 5%;
         margin-right: 5%;
      }
+    /* Improve checkbox layout on small screens */
+    .worker-checkbox-container {
+        display: grid; /* Switch to grid for better control */
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive columns */
+        gap: 5px;
+        padding-left: 0; /* Remove indent on small screens */
+    }
 }
+/* --- END OF FILE style.css --- */

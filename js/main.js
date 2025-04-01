@@ -1,3 +1,5 @@
+// --- START OF FILE main.js ---
+
 import * as GameState from './gameState.js';
 import * as UI from './ui.js';
 import * as Kanban from './kanban.js'; // Still needed for initialization
@@ -31,14 +33,14 @@ const dodForm = document.getElementById('dod-form');
 
 // --- Initialization ---
 function initGame() {
-    console.log("Initializing Game (WIP Limits, Aging, Blockers)...");
+    console.log("Initializing Game (Multi-Assign, WIP 3)..."); // Updated log message
     GameState.loadInitialState(initialProductBacklog); // Load state (resets DoD)
     UI.renderWorkers(GameState.getTeam()); // Render workers early
     Kanban.initializeKanbanBoards(null); // Initialize Kanban display (drag disabled)
     setupEventListeners();
 
     // --- Start Game with DoD Choice ---
-    Simulation.startGameFlow(); // <<<< Start with DoD choice, not planning
+    Simulation.startGameFlow(); // Start with DoD choice
 }
 
 // --- Event Listeners ---
@@ -50,7 +52,7 @@ function setupEventListeners() {
         Simulation.confirmDoDChoice();
     });
 
-    // Other Buttons
+    // Other Buttons (No changes needed here, simulation functions handle new logic)
     openLearningBtn.addEventListener('click', () => UI.showModal(learningModal));
     commitSprintBtn.addEventListener('click', Simulation.commitToSprint); // Planning Modal
     confirmAssignmentsBtn.addEventListener('click', Simulation.confirmWorkerAssignments); // Assignment Modal (Day 1)
@@ -79,7 +81,6 @@ function setupEventListeners() {
 // --- Event Handlers ---
 function handleRetroSubmit(event) {
     event.preventDefault();
-    // Get values from text areas now
     const well = document.getElementById('retro-well').value.trim();
     const improve = document.getElementById('retro-improve').value.trim();
     const change = document.getElementById('retro-change').value.trim();
@@ -96,7 +97,6 @@ function handleRetroSubmit(event) {
     if (GameState.getCurrentSprintNumber() < 3) {
         Simulation.startNextSprint();
     } else {
-        // If retro was the last step, show final book
         Simulation.showFinalStorybook();
     }
 }
@@ -104,3 +104,4 @@ function handleRetroSubmit(event) {
 
 // --- Game Start ---
 document.addEventListener('DOMContentLoaded', initGame);
+// --- END OF FILE main.js ---

@@ -1,3 +1,5 @@
+// --- START OF FILE ui.js ---
+
 import * as GameState from './gameState.js';
 import { selectImageForStory } from './imageSelector.js';
 
@@ -26,7 +28,6 @@ const reviewSponsorFeedback = document.getElementById('review-sponsor-feedback')
 const reviewStorybookPreview = document.getElementById('review-storybook-preview');
 const finalStorybookPages = document.getElementById('final-storybook-pages');
 const dailyScrumDayDisplay = document.getElementById('daily-scrum-day'); // In Reassignment modal now
-// const dailyScrumAssignments = document.getElementById('daily-scrum-assignments'); // Not used for assignments now
 const obstacleDisplay = document.getElementById('obstacle-display'); // In Reassignment modal now
 const choiceStoryTitle = document.getElementById('choice-story-title');
 const choiceOptionsContainer = document.getElementById('choice-options');
@@ -34,15 +35,15 @@ const nextDayBtn = document.getElementById('next-day-btn');
 const endGameBtn = document.getElementById('end-game-btn');
 const workerAssignmentModal = document.getElementById('worker-assignment-modal');
 const assignmentListContainer = document.getElementById('assignment-list');
-const reassignmentListContainer = document.getElementById('reassignment-list'); // NEW Reassignment container
+const reassignmentListContainer = document.getElementById('reassignment-list'); // Reassignment container
 const dodChoiceModal = document.getElementById('dod-choice-modal');
 const dodForm = document.getElementById('dod-form');
 const bonusPointsEasy = document.querySelector('.bonus-points-easy');
 const bonusPointsMedium = document.querySelector('.bonus-points-medium');
 const bonusPointsHard = document.querySelector('.bonus-points-hard');
-const reviewCycleTimeDisplay = document.getElementById('review-cycle-time'); // NEW Cycle Time display
-const reviewDodProgressDisplay = document.getElementById('review-dod-progress'); // NEW DoD Progress display
-const blockerResolutionList = document.getElementById('blocker-assignment-list'); // NEW Blocker section
+const reviewCycleTimeDisplay = document.getElementById('review-cycle-time'); // Cycle Time display
+const reviewDodProgressDisplay = document.getElementById('review-dod-progress'); // DoD Progress display
+const blockerResolutionList = document.getElementById('blocker-assignment-list'); // Blocker section
 const unblockingCostSpan = document.getElementById('unblocking-cost'); // Span for unblocking cost
 
 
@@ -51,7 +52,7 @@ const unblockingCostSpan = document.getElementById('unblocking-cost'); // Span f
 export function renderProductBacklog(backlogItems) { renderStoryList(productBacklogList, backlogItems); }
 export function renderSprintBacklog(sprintItems) { renderStoryList(sprintBacklogList, sprintItems); updateSprintPlanningUI(); }
 export function renderInProgress(inProgressItems) { renderStoryList(inProgressList, inProgressItems); }
-export function renderTesting(testingItems) { renderStoryList(testingList, testingItems); } // NEW
+export function renderTesting(testingItems) { renderStoryList(testingList, testingItems); }
 export function renderDone(doneItems) { renderStoryList(doneList, doneItems); }
 
 function renderStoryList(listElement, stories) {
@@ -79,17 +80,17 @@ export function createStoryCard(story) {
 
     // WIP Aging Display
     const ageSpan = card.querySelector('.story-age');
-    if ((story.status === 'inprogress' || story.status === 'testing') && typeof story.daysInState === 'number' && story.daysInState > 0) {
+    // Show age only if active and has workers
+    if ((story.status === 'inprogress' || story.status === 'testing') && story.assignedWorkers.length > 0 && typeof story.daysInState === 'number' && story.daysInState > 0) {
         ageSpan.textContent = `Age: ${story.daysInState}d`;
         ageSpan.style.display = 'inline';
-        // Optional: Add visual cue for old items
-        if (story.daysInState > 2) { // Example threshold: 2 days in state is getting old
+        if (story.daysInState > 2) { // Highlight old items
             ageSpan.style.fontWeight = 'bold';
-            ageSpan.style.color = '#e74c3c'; // Red for aging items
-            ageSpan.classList.add('aging'); // Add class for potential styling
+            ageSpan.style.color = '#e74c3c';
+            ageSpan.classList.add('aging');
         } else {
             ageSpan.style.fontWeight = 'normal';
-            ageSpan.style.color = '#999'; // Default aging color
+            ageSpan.style.color = '#999';
             ageSpan.classList.remove('aging');
         }
     } else {
@@ -107,19 +108,38 @@ export function createStoryCard(story) {
             tagsContainer.appendChild(tagSpan);
         });
     }
-    const workerSpan = card.querySelector('.story-worker');
-    const worker = story.assignedWorker ? GameState.getTeam().find(w => w.id === story.assignedWorker) : null;
-    workerSpan.textContent = worker ? worker.name : 'None';
+
+    // --- Worker Assignment Display (CHANGED) ---
+    const workerSpan = card.querySelector('.story-worker'); // The SPAN element inside the "Assigned:" div
+    const assignmentDiv = card.querySelector('.story-assignment'); // The main DIV
+    if (story.assignedWorkers && story.assignedWorkers.length > 0) {
+        workerSpan.innerHTML = ''; // Clear default "None"
+        story.assignedWorkers.forEach((workerId, index) => {
+            const worker = GameState.getWorkerById(workerId);
+            if(worker) {
+                const workerPill = document.createElement('span');
+                workerPill.classList.add('worker-pill');
+                workerPill.style.backgroundColor = getWorkerColor(workerId);
+                workerPill.textContent = worker.name.split(' ')[0]; // Show first name
+                workerPill.title = `${worker.name} (${worker.area} ${worker.skill})`; // Tooltip
+                workerSpan.appendChild(workerPill);
+            }
+        });
+    } else {
+         workerSpan.textContent = 'None'; // Keep default if no workers
+    }
+    // --- End Worker Assignment Display ---
+
 
     // Blocker Display
     const blockerInfo = card.querySelector('.blocker-info');
     if (story.isBlocked) {
         blockerInfo.style.display = 'block';
-        card.style.borderLeftColor = 'orange'; // Use left border for blocker
-        card.dataset.blocked = 'true'; // Add data attribute for potential CSS targeting
+        card.style.borderLeftColor = 'orange';
+        card.dataset.blocked = 'true';
     } else {
         blockerInfo.style.display = 'none';
-        card.style.borderLeftColor = 'transparent'; // Reset left border
+        card.style.borderLeftColor = 'transparent';
         card.dataset.blocked = 'false';
     }
 
@@ -130,14 +150,15 @@ export function createStoryCard(story) {
     const testProgressBar = card.querySelector('.test-progress');
     const testPointsRemainingSpan = card.querySelector('.test-points-remaining');
 
-    if (story.status === 'inprogress' || story.status === 'testing' || story.status === 'done') {
+    // Show progress if it has started or completed
+    if (story.progress > 0 || story.status === 'testing' || story.status === 'done') {
         devProgressElement.style.display = 'block';
         devProgressBar.value = story.progress || 0;
         devProgressBar.max = 100;
         devPointsRemainingSpan.textContent = `${Math.round(story.remainingEffort)} pts`;
     } else { devProgressElement.style.display = 'none'; }
 
-    if (story.status === 'testing' || story.status === 'done') {
+    if (story.testingProgress > 0 || story.status === 'done') {
         testProgressElement.style.display = 'block';
         testProgressBar.value = story.testingProgress || 0;
         testProgressBar.max = 100;
@@ -168,26 +189,25 @@ export function renderWorkers(workers) {
              const obstacleMsg = getObstacleMessageForWorker(worker.id);
              stateText = `Unavailable (${obstacleMsg})`;
              stateElement.style.color = '#e74c3c'; stateClass = 'unavailable';
-        } else if (worker.isUnblocking && worker.assignedStory) { // NEW: Show unblocking status
+        } else if (worker.isUnblocking && worker.assignedStory) { // Unblocking takes precedence
             const blockedStory = GameState.getStory(worker.assignedStory);
             stateText = `Unblocking: ${blockedStory ? blockedStory.title.substring(0,15)+'...' : 'Unknown'}`;
-            stateElement.style.color = '#f39c12'; // Orange for unblocking
-            stateClass = 'unblocking'; // Use distinct state for border
-        } else if (worker.assignedStory) {
+            stateElement.style.color = '#f39c12';
+            stateClass = 'unblocking';
+        } else if (worker.assignedStory) { // Worker is assigned (focused on) a story
             const assignedStory = GameState.getStory(worker.assignedStory);
-             // Check if assigned story is blocked
-             if (assignedStory?.isBlocked) {
+             if (assignedStory?.isBlocked) { // Check if the focused story is blocked
                 stateText = `Blocked on: ${assignedStory.title.substring(0,15)+'...'}`;
-                stateElement.style.color = '#e74c3c'; // Red text for blocked worker
-                stateClass = 'blocked'; // Use distinct state for border
+                stateElement.style.color = '#e74c3c';
+                stateClass = 'blocked';
              } else {
                 stateText = `Working on: ${assignedStory ? assignedStory.title.substring(0,15)+'...' : 'Unknown'}`;
-                stateElement.style.color = '#3498db'; // Blue text for working
+                stateElement.style.color = '#3498db';
                 stateClass = 'working';
              }
-        } else {
+        } else { // Worker is idle (available and not assigned)
             stateText = `Idle (${worker.dailyPointsLeft} pts left)`;
-            stateElement.style.color = '#2ecc71'; // Green text for idle
+            stateElement.style.color = '#2ecc71';
             stateClass = 'idle';
         }
         stateElement.textContent = stateText;
@@ -213,10 +233,9 @@ export function updateSprintInfo(sprintNum, capacity, phaseName = 'Planning') {
     modalTeamCapacityDisplays.forEach(el => el.textContent = capacity);
 }
 
-// NEW: Update WIP counts and visual indicators
 export function updateWipDisplays() {
     const wipLimits = GameState.getWipLimits();
-    const currentWip = GameState.getCurrentWip();
+    const currentWip = GameState.getCurrentWip(); // Uses counts from GameState
 
     const columns = [
         { id: 'inprogress', listId: 'inprogress-list' },
@@ -225,52 +244,40 @@ export function updateWipDisplays() {
 
     columns.forEach(colInfo => {
         const limit = wipLimits[colInfo.id];
-        const count = currentWip[colInfo.id]; // Use state count directly
+        const count = currentWip[colInfo.id]; // Use state count
 
         // Update header display
         const headerElement = document.getElementById(`col-${colInfo.id}`);
         if (headerElement) {
             const countSpan = headerElement.querySelector('.wip-count');
             const maxSpan = headerElement.querySelector('.wip-max');
-            const limitSpan = headerElement.querySelector('.wip-limit'); // The whole span element
+            const limitSpan = headerElement.querySelector('.wip-limit');
 
             if (countSpan) countSpan.textContent = count;
             if (maxSpan) maxSpan.textContent = limit;
             if (limitSpan) {
-                if (count > limit) {
-                    limitSpan.classList.add('exceeded');
-                } else {
-                    limitSpan.classList.remove('exceeded');
-                }
+                limitSpan.classList.toggle('exceeded', count > limit);
             }
         }
 
-        // Update corresponding modal WIP info spans if they exist
+        // Update corresponding modal WIP info spans
          const modalWipInfo = document.getElementById(`${colInfo.id}-wip-info`);
          if (modalWipInfo) {
              const countSpan = modalWipInfo.querySelector('.wip-count');
              const maxSpan = modalWipInfo.querySelector('.wip-max');
              if (countSpan) countSpan.textContent = count;
              if (maxSpan) maxSpan.textContent = limit;
-             if (count > limit) {
-                 modalWipInfo.classList.add('exceeded'); // Use class for styling
-             } else {
-                  modalWipInfo.classList.remove('exceeded');
-             }
+             modalWipInfo.classList.toggle('exceeded', count > limit);
          }
 
          // Update daily scrum modal WIP display spans
          const dailyWipCount = document.getElementById(`daily-wip-${colInfo.id}-count`);
          const dailyWipMax = document.getElementById(`daily-wip-${colInfo.id}-max`);
-         const dailyWipSpan = document.getElementById(`daily-wip-${colInfo.id}`); // The surrounding span
+         const dailyWipSpan = document.getElementById(`daily-wip-${colInfo.id}`);
          if(dailyWipCount) dailyWipCount.textContent = count;
          if(dailyWipMax) dailyWipMax.textContent = limit;
          if (dailyWipSpan) {
-             if (count > limit) {
-                 dailyWipSpan.classList.add('exceeded');
-             } else {
-                 dailyWipSpan.classList.remove('exceeded');
-             }
+             dailyWipSpan.classList.toggle('exceeded', count > limit);
          }
     });
 }
@@ -280,25 +287,21 @@ export function updateCard(storyId, storyData) {
     const card = document.querySelector(`.story-card[data-story-id="${storyId}"]`);
     if (card && storyData) {
         // Re-create the card content to ensure all elements are updated
-        // This is slightly less efficient but more robust than updating individual elements
         const newCard = createStoryCard(storyData);
         if (newCard) {
             card.innerHTML = newCard.innerHTML; // Replace inner content
             // Re-apply styles/attributes that might be on the card element itself
-            if (storyData.isBlocked) {
-                card.style.borderLeftColor = 'orange';
-                card.dataset.blocked = 'true';
-            } else {
-                card.style.borderLeftColor = 'transparent';
-                card.dataset.blocked = 'false';
-            }
-             // Add aging attribute if needed
-            if (storyData.daysInState > 2 && (storyData.status === 'inprogress' || storyData.status === 'testing') && !storyData.isBlocked) {
+            card.style.borderLeftColor = storyData.isBlocked ? 'orange' : 'transparent';
+            card.dataset.blocked = storyData.isBlocked ? 'true' : 'false';
+
+             // Apply aging border if applicable and not blocked
+             const isAging = storyData.daysInState > 2 && (storyData.status === 'inprogress' || storyData.status === 'testing') && storyData.assignedWorkers.length > 0;
+             if (isAging && !storyData.isBlocked) {
                  card.dataset.aging = 'true';
-                 card.style.borderLeftColor = '#e74c3c'; // Use red for aging if not blocked
+                 card.style.borderLeftColor = '#e74c3c'; // Red for aging
              } else if (!storyData.isBlocked) { // Reset aging border only if not blocked
                  card.dataset.aging = 'false';
-                 card.style.borderLeftColor = 'transparent'; // Fallback to transparent if not blocked or aging
+                 // Border color already set based on blocked status
              }
         }
     } else { console.warn(`Card with ID ${storyId} not found for update or invalid data.`); }
@@ -313,9 +316,8 @@ export function moveCardToColumn(storyId, targetColumnId) {
             targetList.appendChild(card);
             console.log(`UI: Moved card ${storyId} to column ${targetColumnId}`);
         }
-        // Update WIP counts AFTER the card has physically moved in the DOM/state
-        // Note: GameState.updateStoryStatus triggers GameState.updateWipCount internally
-        // Calling it here ensures the UI header reflects the latest counts.
+        // WIP counts are updated via GameState.updateStoryStatus -> GameState.updateWipCount
+        // Calling updateWipDisplays ensures UI headers reflect the latest state.
         updateWipDisplays();
     } else {
          console.warn(`UI Error: Could not move card ${storyId} to column ${targetColumnId}. Card or list not found.`);
@@ -338,13 +340,12 @@ export function renderAllColumns() {
     console.log("Re-rendering all columns...");
     renderProductBacklog(GameState.getProductBacklog());
     const allStories = Object.values(GameState.getAllStories());
-    // Ensure sprint backlog only shows stories actually in the sprint backlog state array
     const sprintBacklogIds = GameState.getSprintBacklog().map(s => s.id);
     renderSprintBacklog(allStories.filter(s => s.status === 'ready' && sprintBacklogIds.includes(s.id)));
     renderInProgress(allStories.filter(s => s.status === 'inprogress'));
-    renderTesting(allStories.filter(s => s.status === 'testing')); // Added
+    renderTesting(allStories.filter(s => s.status === 'testing'));
     renderDone(allStories.filter(s => s.status === 'done'));
-    // updateWipDisplays(); // Called within renderStoryList now
+    // updateWipDisplays(); // Called within renderStoryList
 }
 
 
@@ -357,9 +358,7 @@ export function showModal(modalElement) {
         } else {
              console.log(`>>> UI.showModal: Modal ${modalElement.id} is already open.`);
         }
-    } else {
-        console.error(">>> UI.showModal Error: Invalid modal element or showModal not supported:", modalElement);
-    }
+    } else { console.error(">>> UI.showModal Error: Invalid modal element or showModal not supported:", modalElement); }
 }
 export function closeModal(modalElement) { if (modalElement && typeof modalElement.close === 'function') { modalElement.close(); } }
 
@@ -383,7 +382,6 @@ export function populateSprintPlanningModal(backlogStories, selectedIds, current
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox'; checkbox.id = `plan-select-${story.id}`; checkbox.value = story.id;
         checkbox.checked = selectedIds.includes(story.id);
-        // Use base effort initially, update if implementation chosen later
         checkbox.dataset.effort = story.baseEffort;
         const label = document.createElement('label');
         label.htmlFor = checkbox.id;
@@ -394,24 +392,19 @@ export function populateSprintPlanningModal(backlogStories, selectedIds, current
              if (!storyData) { console.error(`Story data not found for ID ${storyId} during planning change.`); return; }
              let actionSuccess = false;
              if (isChecked) {
-                 // Check for implementation choices *before* adding to sprint
                  if (storyData.implementationChoices && storyData.implementationChoices.length > 0 && !storyData.chosenImplementation) {
                      showProceduralChoiceModal(storyData); // Show choice modal
-                     // Don't add to sprint yet, wait for choice confirmation
-                     // Keep checkbox visually checked for now
                  } else {
-                      // Add to sprint directly if no choices needed or already made
                       actionSuccess = GameState.addStoryToSprint(storyId);
                       if (actionSuccess) { moveCardToColumn(storyId, 'ready'); }
-                      else { console.warn(`Add to sprint failed for ${storyId}, reverting checkbox.`); event.target.checked = false; }
+                      else { event.target.checked = false; } // Revert checkbox
                  }
              } else {
-                 // Remove from sprint
                  actionSuccess = GameState.removeStoryFromSprint(storyId);
                   if (actionSuccess) { moveCardToColumn(storyId, 'backlog'); }
-                  else { console.warn(`Remove from sprint failed for ${storyId}, reverting checkbox.`); event.target.checked = true; }
+                  else { event.target.checked = true; } // Revert checkbox
              }
-             updateSprintPlanningUI(); // Update points display
+             updateSprintPlanningUI();
         });
         div.appendChild(checkbox); div.appendChild(label); planningBacklogSelection.appendChild(div);
     });
@@ -465,118 +458,145 @@ export function showProceduralChoiceModal(story) {
      showModal(modal);
 }
 
-export function populateWorkerAssignmentModal(storiesToAssign, availableWorkers) {
+// --- Populate Worker Assignment Modal (Day 1) --- CHANGED for multi-select
+export function populateWorkerAssignmentModal(storiesToAssign, allWorkers) {
     if (!assignmentListContainer) return;
     assignmentListContainer.innerHTML = '';
     updateWipDisplays(); // Ensure WIP info is current before populating
 
-    if (storiesToAssign.length === 0) { assignmentListContainer.innerHTML = '<p>No stories in the Sprint Backlog require assignment.</p>'; return; }
+    if (storiesToAssign.length === 0) {
+        assignmentListContainer.innerHTML = '<p>No stories in the Sprint Backlog require assignment.</p>';
+        return;
+    }
 
-    const assignedInModal = new Set(); // Track workers assigned within this modal session
     const wipLimits = GameState.getWipLimits();
-    const currentWip = GameState.getCurrentWip();
+    const assignedInModal = new Set(); // Track workers assigned within this modal session to any story
 
     storiesToAssign.forEach(story => {
         if (!story) return;
-        const storyDiv = document.createElement('div'); storyDiv.className = 'assignment-item';
-        storyDiv.innerHTML = `<strong>${story.title}</strong> (Effort: ${story.chosenImplementation ? story.chosenImplementation.effort : story.baseEffort}) <br> Tags: ${story.tags.join(', ')} <br>`;
+        const storyDiv = document.createElement('div');
+        storyDiv.className = 'assignment-item multi-assign-item'; // Add class for styling
+        storyDiv.dataset.storyId = story.id;
+        storyDiv.innerHTML = `<strong>${story.title}</strong> (Effort: ${story.chosenImplementation ? story.chosenImplementation.effort : story.baseEffort}) <br> Tags: ${story.tags.join(', ')} <br> <label>Assign Workers:</label>`;
 
-        const selectLabel = document.createElement('label'); selectLabel.textContent = 'Assign Worker: '; selectLabel.htmlFor = `assign-${story.id}`;
-        const selectWorker = document.createElement('select'); selectWorker.id = `assign-${story.id}`; selectWorker.dataset.storyId = story.id;
+        const workerCheckboxContainer = document.createElement('div');
+        workerCheckboxContainer.className = 'worker-checkbox-container';
 
-        const noneOption = document.createElement('option'); noneOption.value = ''; noneOption.textContent = '-- Select Available Worker --';
-        selectWorker.appendChild(noneOption);
+        const suitableWorkers = allWorkers.filter(w => w.area !== 'Testing'); // Only Devs for Ready -> InProgress
 
-        // Check if assigning this story would break WIP limit for 'inprogress' *predictively*
-        const wouldExceedWip = (currentWip.inprogress + assignedInModal.size) >= wipLimits.inprogress;
+        if (suitableWorkers.length === 0) {
+            workerCheckboxContainer.innerHTML = '<small>No suitable (Dev) workers available.</small>';
+        } else {
+            suitableWorkers.forEach(worker => {
+                const checkboxId = `assign-${story.id}-${worker.id}`;
+                const workerDiv = document.createElement('div');
+                workerDiv.className = 'worker-checkbox-option';
 
-        availableWorkers.forEach(worker => {
-            // Only allow Devs (non-Testers) to be assigned here (to Ready stories -> InProgress)
-            if (worker.area !== 'Testing') {
-                const option = document.createElement('option'); option.value = worker.id;
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = checkboxId;
+                checkbox.value = worker.id;
+                checkbox.dataset.storyId = story.id;
+                // Initial disable: worker already assigned elsewhere in modal
+                checkbox.disabled = assignedInModal.has(worker.id);
+
+                const label = document.createElement('label');
+                label.htmlFor = checkboxId;
                 const specialtyMatch = story.tags.includes(worker.area);
-                option.textContent = `${worker.name} (${worker.area} ${worker.skill} - ${worker.pointsPerDay} pts)${specialtyMatch ? ' ✨' : ''}`;
-                 // Initial disable: worker assigned elsewhere in modal OR assigning *any* worker would break limit
-                option.disabled = assignedInModal.has(worker.id) || wouldExceedWip;
-                selectWorker.appendChild(option);
-            }
-        });
+                label.textContent = ` ${worker.name} (${worker.area} ${worker.skill} - ${worker.pointsPerDay} pts)${specialtyMatch ? ' ✨' : ''}`;
+                label.title = checkbox.disabled ? 'Worker already assigned to another story in this modal' : '';
 
-         // Add warning if WIP limit is the reason for disabling options
-         if (wouldExceedWip && availableWorkers.some(w => w.area !== 'Testing')) {
-             const warningSpan = document.createElement('span');
-             warningSpan.className = 'wip-limit-warning'; // Add class for easier removal/update
-             warningSpan.textContent = ' (WIP Limit Reached)';
-             warningSpan.style.color = 'red';
-             warningSpan.style.fontSize = '0.9em';
-             storyDiv.appendChild(warningSpan);
-         }
+                checkbox.addEventListener('change', (event) => {
+                    const workerId = event.target.value;
+                    const isChecked = event.target.checked;
 
-
-        selectWorker.addEventListener('change', (event) => {
-            const selectedWorkerId = event.target.value;
-            const previousWorkerId = event.target.dataset.currentlySelected; // Get previously selected in this specific dropdown
-
-            // Update the set of workers assigned within the modal
-            if (previousWorkerId) { assignedInModal.delete(previousWorkerId); }
-            if (selectedWorkerId) { assignedInModal.add(selectedWorkerId); }
-            event.target.dataset.currentlySelected = selectedWorkerId; // Store current selection for this dropdown
-
-             // Re-evaluate predictive WIP limit based on current modal assignments
-            const currentModalWipCount = currentWip.inprogress + assignedInModal.size;
-            const wipLimitReachedNow = currentModalWipCount >= wipLimits.inprogress;
-
-            // Update disable state of options in *all* select dropdowns
-            const allSelects = assignmentListContainer.querySelectorAll('select');
-            allSelects.forEach(sel => {
-                const currentSelectionInOther = sel.value; // The worker currently selected in *that* dropdown
-                 // Find the warning span for this select's story item, if it exists
-                 const itemDiv = sel.closest('.assignment-item');
-                 let warningSpan = itemDiv ? itemDiv.querySelector('.wip-limit-warning') : null;
-
-                Array.from(sel.options).forEach(opt => {
-                    if (opt.value) { // Skip the "-- Select --" option
-                         // Disable if:
-                         // 1. The worker is assigned elsewhere in the modal (and not the current selection of this dropdown)
-                         // 2. Selecting *any* available worker would break the WIP limit (unless it's the worker already selected for this dropdown)
-                        const workerAlreadyAssigned = assignedInModal.has(opt.value) && opt.value !== currentSelectionInOther;
-                        // Disable if limit reached AND the option is not the currently selected one (allows keeping current selection even if over limit temp)
-                        opt.disabled = workerAlreadyAssigned || (wipLimitReachedNow && opt.value !== currentSelectionInOther);
+                    // Update the set of workers assigned within the modal
+                    if (isChecked) {
+                        assignedInModal.add(workerId);
+                    } else {
+                        assignedInModal.delete(workerId);
                     }
-                });
 
-                // Update or add/remove the warning span for the current select element's item
-                if (itemDiv) {
-                    if (wipLimitReachedNow && !currentSelectionInOther) { // WIP limit reached and no one selected for this item yet
-                        if (!warningSpan) {
-                            warningSpan = document.createElement('span');
-                            warningSpan.className = 'wip-limit-warning'; // Add class for potential removal
-                            warningSpan.textContent = ' (WIP Limit Reached)';
-                            warningSpan.style.color = 'red';
-                            warningSpan.style.fontSize = '0.9em';
-                            itemDiv.appendChild(warningSpan);
-                        }
-                        warningSpan.style.display = 'inline'; // Ensure visible
-                    } else if (warningSpan) {
-                        warningSpan.style.display = 'none'; // Hide warning if limit not reached or someone selected
+                    // Re-evaluate WIP limit predictively for *this specific story*
+                    const storyItemDiv = event.target.closest('.assignment-item');
+                    const workersCheckedForThisStory = storyItemDiv.querySelectorAll('input[type="checkbox"]:checked').length;
+                    const isFirstWorkerForThisStory = workersCheckedForThisStory === 1 && isChecked; // True if this check made it the first worker
+                    const isNowZeroWorkers = workersCheckedForThisStory === 0 && !isChecked; // True if this uncheck made it zero
+
+                    const wipLimitReached = GameState.getCurrentWip().inprogress >= wipLimits.inprogress;
+                    const warningSpan = storyItemDiv.querySelector('.wip-limit-warning');
+
+                    // Show WIP warning ONLY if trying to assign the *first* worker AND the limit is reached
+                    if (isFirstWorkerForThisStory && wipLimitReached) {
+                        if (warningSpan) warningSpan.style.display = 'inline';
+                         // Maybe disable other checkboxes for this story if limit reached? Or just show warning.
+                         // For now, just show warning. GameState will prevent commit if invalid.
+                    } else {
+                         if (warningSpan) warningSpan.style.display = 'none'; // Hide warning if not first worker or limit ok
                     }
-                }
-            });
-        });
 
-        storyDiv.appendChild(selectLabel); storyDiv.appendChild(selectWorker);
+                    // Update disable state of this worker in *other* story assignments
+                    const allCheckboxes = assignmentListContainer.querySelectorAll('input[type="checkbox"]');
+                    allCheckboxes.forEach(cb => {
+                         if (cb.value === workerId && cb !== event.target) { // Find checkboxes for the same worker in other stories
+                              cb.disabled = isChecked; // Disable if checked here, enable if unchecked here
+                              const otherLabel = cb.nextElementSibling;
+                              if (otherLabel) {
+                                   otherLabel.title = isChecked ? 'Worker assigned to another story in this modal' : '';
+                              }
+                         }
+                    });
+                }); // End event listener
+
+                workerDiv.appendChild(checkbox);
+                workerDiv.appendChild(label);
+                workerCheckboxContainer.appendChild(workerDiv);
+            }); // End forEach suitable worker
+        } // End else suitableWorkers.length > 0
+
+        storyDiv.appendChild(workerCheckboxContainer);
+
+        // Add placeholder for WIP Limit warning (hidden initially)
+        const warningSpan = document.createElement('span');
+        warningSpan.className = 'wip-limit-warning';
+        warningSpan.textContent = ` (WIP Limit: ${wipLimits.inprogress} Reached - Cannot start new story)`;
+        warningSpan.style.color = 'red';
+        warningSpan.style.fontSize = '0.9em';
+        warningSpan.style.display = 'none'; // Hide initially
+        storyDiv.appendChild(warningSpan);
+
         assignmentListContainer.appendChild(storyDiv);
+    }); // End forEach storyToAssign
+
+    // Initial check for disabling workers already assigned (e.g., if modal reopened without confirming)
+    const allCheckboxesInitial = assignmentListContainer.querySelectorAll('input[type="checkbox"]');
+    allCheckboxesInitial.forEach(cb => {
+        const storyData = GameState.getStory(cb.dataset.storyId);
+        if (storyData && storyData.assignedWorkers.includes(cb.value)) {
+            cb.checked = true;
+            assignedInModal.add(cb.value); // Add to modal set initially
+        }
     });
+    // Update disabled state based on initial assignments
+    allCheckboxesInitial.forEach(cb => {
+         if (!cb.checked && assignedInModal.has(cb.value)) {
+              cb.disabled = true;
+              const label = cb.nextElementSibling;
+              if(label) label.title = 'Worker already assigned to another story in this modal';
+         }
+    });
+
+
 }
 
 
-// Populate Daily Scrum modal - NOW for Day 2 Reassignment & Blocker Resolution
+// --- Populate Daily Scrum modal (Day 2 Reassignment & Blockers) --- CHANGED for multi-select
 export function populateDailyScrumModal(day, workers, activeObstacles, storiesInProgressOrTesting) {
     const modal = document.getElementById('daily-scrum-modal');
     if (!modal) return;
     modal.querySelector('h2').textContent = `Daily Scrum & Reassignment - Day ${day}`;
     updateWipDisplays(); // Ensure WIP counts in modal header are correct
-    if (unblockingCostSpan) unblockingCostSpan.textContent = GameState.UNBLOCKING_COST; // Update cost display
+    if (unblockingCostSpan) unblockingCostSpan.textContent = GameState.UNBLOCKING_COST;
 
     // Display Obstacles
     obstacleDisplay.innerHTML = '';
@@ -587,87 +607,146 @@ export function populateDailyScrumModal(day, workers, activeObstacles, storiesIn
     reassignmentListContainer.innerHTML = ''; // Clear previous list
     blockerResolutionList.innerHTML = ''; // Clear previous blocker list
 
-    const storiesToDisplay = Object.values(GameState.getAllStories())
+    const allActiveStories = Object.values(GameState.getAllStories())
                                    .filter(s => s.status === 'inprogress' || s.status === 'testing');
-    const blockedStories = storiesToDisplay.filter(s => s.isBlocked);
-    const unblockedActiveStories = storiesToDisplay.filter(s => !s.isBlocked);
+    const blockedStories = allActiveStories.filter(s => s.isBlocked);
+    const unblockedActiveStories = allActiveStories.filter(s => !s.isBlocked);
 
     const wipLimits = GameState.getWipLimits();
-    const currentWip = GameState.getCurrentWip();
     const availableWorkers = GameState.getAvailableWorkers(); // Workers not assigned and available
     const availableSeniorDevs = GameState.getAvailableSeniorDevs(); // For unblocking
 
-    // Store workers assigned in this modal session to prevent double-booking
-    // Needs to track both reassignments and unblocking assignments
+    // Track workers assigned in this modal session (either reassignment or unblocking)
     const assignedInModal = new Set();
-    // Pre-populate with workers already assigned to the stories being displayed
-    storiesToDisplay.forEach(story => {
-         if (story?.assignedWorker && !story.isBlocked) { // Only count assignments to non-blocked stories initially
-              assignedInModal.add(story.assignedWorker);
-         }
-    });
-
+    // Pre-populate with workers already assigned to *any* story or unblocking
+    workers.forEach(w => { if (w.assignedStory) assignedInModal.add(w.id); });
 
     // --- Populate Reassignment Section ---
     const reassignmentSection = document.getElementById('reassignment-section');
     if (unblockedActiveStories.length === 0) {
-        reassignmentListContainer.innerHTML = '<p>No active (unblocked) stories to reassign.</p>';
-        reassignmentSection.style.display = 'block'; // Ensure section is visible even if empty
+        reassignmentListContainer.innerHTML = '<p>No active (unblocked) stories to reassign workers.</p>';
+        reassignmentSection.style.display = 'block';
     } else {
-        reassignmentSection.style.display = 'block'; // Ensure section is visible
+        reassignmentSection.style.display = 'block';
 
         unblockedActiveStories.forEach(story => {
-            const itemDiv = document.createElement('div'); itemDiv.className = 'reassignment-item';
-            const currentWorker = story.assignedWorker ? GameState.getWorkerById(story.assignedWorker) : null;
-            const currentWorkerName = currentWorker ? currentWorker.name : 'None';
-            const storyEffortText = story.status === 'testing' ? `Test Left: ${story.testingEffortRemaining}` : `Dev Left: ${story.remainingEffort}`;
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'reassignment-item multi-assign-item'; // Add class for styling
+            itemDiv.dataset.storyId = story.id;
+            itemDiv.dataset.storyStatus = story.status; // Store status for WIP check
+
+            const storyEffortText = story.status === 'testing' ? `Test Left: ${Math.round(story.testingEffortRemaining)}` : `Dev Left: ${Math.round(story.remainingEffort)}`;
             const ageText = story.daysInState > 0 ? ` (Age: ${story.daysInState}d)` : '';
-            itemDiv.innerHTML = `<strong>${story.title}</strong> (${storyEffortText}) <br> Status: ${story.status}${ageText} <span class="reassignment-current">(Currently: ${currentWorkerName})</span> <br>`;
+            itemDiv.innerHTML = `<strong>${story.title}</strong> (${storyEffortText}) <br> Status: ${story.status}${ageText}<br>`;
 
-            const selectLabel = document.createElement('label'); selectLabel.textContent = 'Assign Worker: '; selectLabel.htmlFor = `reassign-${story.id}`;
-            const selectWorker = document.createElement('select'); selectWorker.id = `reassign-${story.id}`; selectWorker.dataset.storyId = story.id; selectWorker.dataset.initialWorker = story.assignedWorker || ''; selectWorker.dataset.storyStatus = story.status; // Store status for WIP check
+            // Display Currently Assigned Workers
+            const currentWorkersDiv = document.createElement('div');
+            currentWorkersDiv.className = 'current-workers-list';
+            currentWorkersDiv.innerHTML = 'Currently Assigned: ';
+            if (story.assignedWorkers.length > 0) {
+                story.assignedWorkers.forEach(workerId => {
+                    const worker = GameState.getWorkerById(workerId);
+                    if (worker) {
+                        const pill = document.createElement('span');
+                        pill.className = 'worker-pill';
+                        pill.style.backgroundColor = getWorkerColor(workerId);
+                        pill.textContent = worker.name.split(' ')[0];
+                        pill.title = `${worker.name} (${worker.area} ${worker.skill})`;
+                        // Add a remove button/checkbox next to each assigned worker
+                        const removeCheckbox = document.createElement('input');
+                        removeCheckbox.type = 'checkbox';
+                        removeCheckbox.checked = true; // Checked means "keep assigned"
+                        removeCheckbox.dataset.action = 'keep';
+                        removeCheckbox.dataset.workerId = workerId;
+                        removeCheckbox.id = `keep-${story.id}-${workerId}`;
+                        removeCheckbox.addEventListener('change', (e) => {
+                            const workerId = e.target.dataset.workerId;
+                            if (!e.target.checked) { // If unchecked (meaning "remove")
+                                assignedInModal.delete(workerId); // Free up worker in modal state
+                            } else { // If re-checked (meaning "keep")
+                                assignedInModal.add(workerId); // Re-assign worker in modal state
+                            }
+                            updateDailyScrumModalOptions(assignedInModal); // Update options everywhere
+                        });
 
-            const noneOption = document.createElement('option'); noneOption.value = '';
-            noneOption.textContent = currentWorker ? `-- Keep ${currentWorkerName} --` : '-- Select Available Worker --';
-            selectWorker.appendChild(noneOption);
+                        const removeLabel = document.createElement('label');
+                        removeLabel.htmlFor = `keep-${story.id}-${workerId}`;
+                        removeLabel.className = 'worker-remove-label';
+                        removeLabel.appendChild(pill);
+                        // removeLabel.appendChild(document.createTextNode(' (Keep)')); // Optional text
 
-            // Combine available workers + the currently assigned worker (if any and usable)
-            const potentialWorkers = [...availableWorkers];
-            if (currentWorker && currentWorker.available && !currentWorker.isUnblocking && !potentialWorkers.some(w => w.id === currentWorker.id)) {
-                potentialWorkers.push(currentWorker);
+                        currentWorkersDiv.appendChild(removeCheckbox);
+                        currentWorkersDiv.appendChild(removeLabel);
+                    }
+                });
+            } else {
+                currentWorkersDiv.innerHTML += '<i>None</i>';
             }
+            itemDiv.appendChild(currentWorkersDiv);
 
-            potentialWorkers.forEach(worker => {
-                // Determine if worker role matches story status
-                 const canWork = (worker.area !== 'Testing' && story.status === 'inprogress') || (worker.area === 'Testing' && story.status === 'testing');
+            // Display Available Workers to Add
+            const addWorkersDiv = document.createElement('div');
+            addWorkersDiv.className = 'add-workers-list worker-checkbox-container'; // Reuse styling
+            addWorkersDiv.innerHTML = '<label>Add Available Workers:</label>';
 
-                 if (canWork) {
-                    const option = document.createElement('option'); option.value = worker.id;
+             // Filter available workers based on story status
+            const suitableAvailableWorkers = availableWorkers.filter(w => {
+                 return (story.status === 'inprogress' && w.area !== 'Testing') || (story.status === 'testing' && w.area === 'Testing');
+             });
+
+
+            if (suitableAvailableWorkers.length === 0) {
+                addWorkersDiv.innerHTML += '<small>No suitable workers available to add.</small>';
+            } else {
+                suitableAvailableWorkers.forEach(worker => {
+                    // Don't show workers already assigned to *this* story in the add list
+                    if (story.assignedWorkers.includes(worker.id)) return;
+
+                    const checkboxId = `add-${story.id}-${worker.id}`;
+                    const workerDiv = document.createElement('div');
+                    workerDiv.className = 'worker-checkbox-option';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = checkboxId;
+                    checkbox.value = worker.id;
+                    checkbox.dataset.action = 'add';
+                    // Initial disable: worker assigned elsewhere in modal
+                    checkbox.disabled = assignedInModal.has(worker.id);
+
+                    const label = document.createElement('label');
+                    label.htmlFor = checkboxId;
                     const specialtyMatch = story.tags.includes(worker.area);
-                    option.textContent = `${worker.name} (${worker.area} ${worker.skill} - ${worker.pointsPerDay} pts)${specialtyMatch ? ' ✨' : ''}`;
+                    label.textContent = ` ${worker.name} (${worker.area} ${worker.skill} - ${worker.pointsPerDay} pts)${specialtyMatch ? ' ✨' : ''}`;
+                    label.title = checkbox.disabled ? 'Worker already assigned to another story or unblocking in this modal' : '';
 
-                    // Initial disable check: worker assigned elsewhere in modal (either reassignment or unblocking)?
-                    option.disabled = assignedInModal.has(worker.id) && worker.id !== story.assignedWorker;
-                    selectWorker.appendChild(option);
-                 }
-            });
+                    checkbox.addEventListener('change', (event) => {
+                         const workerId = event.target.value;
+                         if (event.target.checked) { // If checked (meaning "add")
+                              assignedInModal.add(workerId);
+                         } else { // If unchecked (meaning "cancel add")
+                              assignedInModal.delete(workerId);
+                         }
+                         updateDailyScrumModalOptions(assignedInModal); // Update options everywhere
+                    });
 
-            // Add event listener for dynamic disabling based on modal selections and WIP
-            selectWorker.addEventListener('change', () => {
-                updateDailyScrumModalOptions(assignedInModal); // Call helper to update all dropdowns
-            });
+                    workerDiv.appendChild(checkbox);
+                    workerDiv.appendChild(label);
+                    addWorkersDiv.appendChild(workerDiv);
+                });
+            }
+            itemDiv.appendChild(addWorkersDiv);
 
-            itemDiv.appendChild(selectLabel); itemDiv.appendChild(selectWorker);
             reassignmentListContainer.appendChild(itemDiv);
         }); // End forEach unblocked story
     }
 
 
-    // --- Populate Blocker Resolution Section ---
+    // --- Populate Blocker Resolution Section --- (Largely unchanged logic, but needs UI updates)
      const blockerSection = document.getElementById('blocker-resolution-section');
     if (blockedStories.length > 0) {
         blockerSection.style.display = 'block';
-        blockerResolutionList.innerHTML = ''; // Clear previous
+        blockerResolutionList.innerHTML = '';
 
         blockedStories.forEach(story => {
             const itemDiv = document.createElement('div');
@@ -677,11 +756,12 @@ export function populateDailyScrumModal(day, workers, activeObstacles, storiesIn
 
             const selectLabel = document.createElement('label');
             selectLabel.htmlFor = `unblock-assign-${story.id}`;
-            selectLabel.textContent = 'Assign Senior Dev: ';
+            selectLabel.textContent = 'Assign Senior Dev to Unblock: ';
 
             const selectWorker = document.createElement('select');
             selectWorker.id = `unblock-assign-${story.id}`;
             selectWorker.dataset.storyId = story.id; // Store story ID
+            selectWorker.dataset.action = 'unblock'; // Mark action type
 
             const noneOption = document.createElement('option');
             noneOption.value = '';
@@ -698,7 +778,21 @@ export function populateDailyScrumModal(day, workers, activeObstacles, storiesIn
             });
 
              selectWorker.addEventListener('change', () => {
-                 updateDailyScrumModalOptions(assignedInModal); // Call helper to update all dropdowns
+                 // When selection changes, we need to update the master 'assignedInModal' set.
+                 // Find the previously selected value for this dropdown (if any) and remove it from the set.
+                 const previousWorkerId = selectWorker.dataset.previousValue;
+                 if (previousWorkerId) {
+                      assignedInModal.delete(previousWorkerId);
+                 }
+                 // Add the newly selected worker (if any) to the set.
+                 const currentWorkerId = selectWorker.value;
+                 if (currentWorkerId) {
+                      assignedInModal.add(currentWorkerId);
+                 }
+                 // Store the current value for the next change event.
+                 selectWorker.dataset.previousValue = currentWorkerId;
+
+                 updateDailyScrumModalOptions(assignedInModal); // Update all options based on the new set
              });
 
             itemDiv.appendChild(selectLabel);
@@ -711,89 +805,54 @@ export function populateDailyScrumModal(day, workers, activeObstacles, storiesIn
 
     // Initial update after populating
     updateDailyScrumModalOptions(assignedInModal);
-
 }
 
-// Helper function to update all dropdown options in the Daily Scrum modal
+// --- Helper function to update all interactive elements in the Daily Scrum modal ---
 function updateDailyScrumModalOptions(assignedInModalSet) {
-    const allReassignSelects = reassignmentListContainer.querySelectorAll('select');
+    const allReassignItems = reassignmentListContainer.querySelectorAll('.reassignment-item');
     const allBlockerSelects = blockerResolutionList.querySelectorAll('select');
 
-    // Clear and rebuild the set of assigned workers based on current selections
-    assignedInModalSet.clear();
-    allReassignSelects.forEach(sel => { if (sel.value) assignedInModalSet.add(sel.value); });
-    allBlockerSelects.forEach(sel => { if (sel.value) assignedInModalSet.add(sel.value); });
-
-    // Recalculate projected WIP based on current selections
-    const wipLimits = GameState.getWipLimits();
-    const currentWip = GameState.getCurrentWip();
-    let projectedWipInProgress = currentWip.inprogress;
-    let projectedWipTesting = currentWip.testing;
-    const initialAssignments = {}; // Store initial assignments {storyId: workerId}
-
-    allReassignSelects.forEach(sel => { initialAssignments[sel.dataset.storyId] = sel.dataset.initialWorker; });
-
-    allReassignSelects.forEach(sel => {
-        const storyId = sel.dataset.storyId;
-        const selInitial = initialAssignments[storyId];
-        const selCurrent = sel.value;
-        const selStatus = sel.dataset.storyStatus;
-
-        if (selCurrent !== selInitial) {
-            if (selInitial) {
-                const initialWorker = GameState.getWorkerById(selInitial);
-                if (initialWorker) {
-                    if (selStatus === 'inprogress' && initialWorker.area !== 'Testing') projectedWipInProgress--;
-                    if (selStatus === 'testing' && initialWorker.area === 'Testing') projectedWipTesting--;
-                }
-            }
-            if (selCurrent) {
-                const currentWorker = GameState.getWorkerById(selCurrent);
-                if (currentWorker) {
-                    if (selStatus === 'inprogress' && currentWorker.area !== 'Testing') projectedWipInProgress++;
-                    if (selStatus === 'testing' && currentWorker.area === 'Testing') projectedWipTesting++;
-                }
-            }
-        }
-    });
-    projectedWipInProgress = Math.max(0, projectedWipInProgress);
-    projectedWipTesting = Math.max(0, projectedWipTesting);
-
-    // Update Reassignment Selects
-    allReassignSelects.forEach(sel => {
-        const currentSelection = sel.value;
-        const initialWorkerId = sel.dataset.initialWorker;
-        const storyStatus = sel.dataset.storyStatus;
-        Array.from(sel.options).forEach(opt => {
-            if (opt.value) {
-                let disableOpt = false;
-                // Assigned elsewhere in modal?
-                if (assignedInModalSet.has(opt.value) && opt.value !== currentSelection) {
-                    disableOpt = true;
-                }
-                // Would break projected WIP limit if changing?
-                if (!disableOpt && opt.value !== initialWorkerId) { // Only check WIP if changing assignment
-                     const workerToAdd = GameState.getWorkerById(opt.value);
-                     if (workerToAdd) {
-                        if (storyStatus === 'inprogress' && workerToAdd.area !== 'Testing' && projectedWipInProgress >= wipLimits.inprogress) disableOpt = true;
-                        if (storyStatus === 'testing' && workerToAdd.area === 'Testing' && projectedWipTesting >= wipLimits.testing) disableOpt = true;
-                     }
-                }
-                opt.disabled = disableOpt;
-            }
+    // --- Update Reassignment Section ---
+    allReassignItems.forEach(itemDiv => {
+        const storyId = itemDiv.dataset.storyId;
+        // Update "Keep" checkboxes
+        itemDiv.querySelectorAll('input[data-action="keep"]').forEach(keepCb => {
+            const workerId = keepCb.dataset.workerId;
+            // Cannot uncheck "keep" if the worker is now assigned elsewhere in the modal
+            keepCb.disabled = !keepCb.checked && assignedInModalSet.has(workerId);
+             const label = keepCb.nextElementSibling;
+             if(label) label.title = keepCb.disabled ? 'Worker assigned elsewhere in modal' : '';
+        });
+        // Update "Add" checkboxes
+        itemDiv.querySelectorAll('input[data-action="add"]').forEach(addCb => {
+            const workerId = addCb.value;
+            // Disable if worker is assigned elsewhere (and not currently checked here)
+            addCb.disabled = !addCb.checked && assignedInModalSet.has(workerId);
+            const label = addCb.nextElementSibling;
+            if(label) label.title = addCb.disabled ? 'Worker assigned elsewhere in modal' : '';
         });
     });
 
-    // Update Blocker Selects
+    // --- Update Blocker Section ---
     allBlockerSelects.forEach(sel => {
         const currentSelection = sel.value;
         Array.from(sel.options).forEach(opt => {
-            if (opt.value) {
-                const worker = GameState.getWorkerById(opt.value);
-                opt.disabled = (assignedInModalSet.has(opt.value) && opt.value !== currentSelection) || (worker && worker.dailyPointsLeft < GameState.UNBLOCKING_COST);
+            if (opt.value) { // Skip the "-- Select --" option
+                const workerId = opt.value;
+                const worker = GameState.getWorkerById(workerId);
+                // Disable if:
+                // 1. Worker is assigned elsewhere in the modal (and not the current selection for this dropdown)
+                // 2. Worker doesn't exist or doesn't have enough points
+                opt.disabled = (assignedInModalSet.has(workerId) && workerId !== currentSelection) || !worker || worker.dailyPointsLeft < GameState.UNBLOCKING_COST;
             }
         });
     });
+
+    // --- (Optional) Predictive WIP Check ---
+    // This is complex with multi-assign. The primary WIP check happens in GameState on confirm.
+    // We can add a simple visual warning here if limits *might* be exceeded based on current modal state,
+    // but enforcing it strictly in the UI is difficult. GameState is the source of truth.
+    // Example: Recalculate projectedWip based on modal changes and display warnings if needed.
 }
 
 
@@ -808,14 +867,11 @@ export function populateSprintReviewModal(sprintNum, completedStories, velocity,
     reviewDodProgressDisplay.textContent = dodProgressFeedback || ""; // Display DoD Progress
 
     reviewStorybookPreview.innerHTML = '';
-    // Sort completed stories for preview if desired
     const storyOrder = [ "Cover", "Introduce", "Finds Cottage", "Cottage Visual", "Porridge", "Chair", "Bed", "Return", "Discover", "Wakes", "End", "Back Cover"];
     const sortedCompleted = [...completedStories].sort((a, b) => {
         const indexA = storyOrder.findIndex(prefix => a.title.includes(prefix));
         const indexB = storyOrder.findIndex(prefix => b.title.includes(prefix));
-        const effectiveIndexA = indexA === -1 ? 99 : indexA;
-        const effectiveIndexB = indexB === -1 ? 99 : indexB;
-        return effectiveIndexA - effectiveIndexB;
+        return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
     });
     sortedCompleted.forEach(story => { const pagePreview = createStorybookPagePreview(story); if (pagePreview) { reviewStorybookPreview.appendChild(pagePreview); } });
     showModal(document.getElementById('sprint-review-modal'));
@@ -824,8 +880,7 @@ export function populateSprintReviewModal(sprintNum, completedStories, velocity,
 
 export function populateRetrospectiveModal(sprintNum) {
      modalSprintNumberDisplays.forEach(el => el.textContent = sprintNum);
-     document.getElementById('retro-form').reset(); // Reset text areas
-     // Clear previous text area values explicitly if reset doesn't work reliably
+     document.getElementById('retro-form').reset();
      document.getElementById('retro-well').value = '';
      document.getElementById('retro-improve').value = '';
      document.getElementById('retro-change').value = '';
@@ -838,7 +893,6 @@ export function populateRetrospectiveModal(sprintNum) {
 export function populateFinalStorybook(completedStories) {
     finalStorybookPages.innerHTML = '';
     const dodStatusDiv = document.createElement('div');
-    // Use existing styles from CSS for this element
     const chosenDoD = GameState.getChosenDoD(); const dodMet = GameState.getDodMetStatus(); const bonusPoints = GameState.getDoDBonusPoints(); const dodDef = GameState.getDodDefinition(chosenDoD);
 
     if (chosenDoD && dodDef) {
@@ -859,12 +913,10 @@ export function populateFinalStorybook(completedStories) {
     if (completedStories.length === 0) { finalStorybookPages.innerHTML += "<p>Oh no! It looks like no pages of the storybook were completed.</p>"; }
     else {
         const storyOrder = [ "Cover", "Introduce", "Finds Cottage", "Cottage Visual", "Porridge", "Chair", "Bed", "Return", "Discover", "Wakes", "End", "Back Cover"];
-        const sortedStories = [...completedStories].sort((a, b) => { // Use spread to avoid modifying original array
+        const sortedStories = [...completedStories].sort((a, b) => {
             const indexA = storyOrder.findIndex(prefix => a.title.includes(prefix));
             const indexB = storyOrder.findIndex(prefix => b.title.includes(prefix));
-            const effectiveIndexA = indexA === -1 ? 99 : indexA;
-            const effectiveIndexB = indexB === -1 ? 99 : indexB;
-            return effectiveIndexA - effectiveIndexB;
+            return (indexA === -1 ? 99 : indexA) - (indexB === -1 ? 99 : indexB);
          });
         sortedStories.forEach(story => { const page = createStorybookPagePreview(story, true); if (page) { finalStorybookPages.appendChild(page); } });
     }
@@ -875,44 +927,32 @@ export function populateFinalStorybook(completedStories) {
 function createStorybookPagePreview(story, isFinal = false) {
     if (!story) return null;
     const pageDiv = document.createElement('div'); pageDiv.classList.add('storybook-page-preview');
-    if (isFinal) pageDiv.style.maxWidth = '300px'; // Adjust size for final view maybe
+    if (isFinal) pageDiv.style.maxWidth = '300px';
 
     const title = document.createElement('h5'); title.textContent = story.title; pageDiv.appendChild(title);
 
     const imageUrl = selectImageForStory(story.id, story.chosenImplementation);
-    const imgContainer = document.createElement('div'); // Container for image
-    imgContainer.style.flexGrow = '1'; // Allow container to grow
-    imgContainer.style.display = 'flex';
-    imgContainer.style.alignItems = 'center';
-    imgContainer.style.justifyContent = 'center';
-    imgContainer.style.minHeight = '80px'; // Ensure space even if no image/text
+    const imgContainer = document.createElement('div');
+    imgContainer.style.flexGrow = '1'; imgContainer.style.display = 'flex'; imgContainer.style.alignItems = 'center'; imgContainer.style.justifyContent = 'center'; imgContainer.style.minHeight = '80px';
 
     if (imageUrl) {
-        const img = document.createElement('img');
-        img.src = imageUrl; img.alt = story.title;
-        // Apply styles directly for simplicity or use CSS classes
-        img.style.maxWidth = '100%'; img.style.maxHeight = '100px';
-        img.style.height = 'auto'; img.style.borderRadius = '3px';
-        img.style.objectFit = 'contain';
+        const img = document.createElement('img'); img.src = imageUrl; img.alt = story.title;
+        img.style.maxWidth = '100%'; img.style.maxHeight = '100px'; img.style.height = 'auto'; img.style.borderRadius = '3px'; img.style.objectFit = 'contain';
         imgContainer.appendChild(img);
     } else if (story.tags.includes('Visual')) {
-         const placeholder = document.createElement('p');
-         placeholder.textContent = '[Visual Story - Image Missing]';
-         placeholder.style.color = '#aaa';
-         placeholder.style.fontStyle = 'italic';
+         const placeholder = document.createElement('p'); placeholder.textContent = '[Visual Story - Image Missing]';
+         placeholder.style.color = '#aaa'; placeholder.style.fontStyle = 'italic';
          imgContainer.appendChild(placeholder);
     }
     pageDiv.appendChild(imgContainer);
 
-
-    const textContainer = document.createElement('div'); // Container for text
-    textContainer.style.marginTop = 'auto'; // Push text towards bottom
+    const textContainer = document.createElement('div');
+    textContainer.style.marginTop = 'auto';
     if (story.chosenImplementation && story.chosenImplementation.impact) {
         const desc = document.createElement('p'); desc.textContent = story.chosenImplementation.impact; textContainer.appendChild(desc);
-    } else if (!story.tags.includes('Visual') && story.story) { // Show base story text if not primarily visual and has text
+    } else if (!story.tags.includes('Visual') && story.story) {
         const desc = document.createElement('p'); desc.textContent = story.story; textContainer.appendChild(desc);
     } else if (!imageUrl && !story.tags.includes('Visual') && !story.story) {
-         // Fallback for non-visual story with no text? Shouldn't happen often.
          textContainer.appendChild(document.createTextNode('[Text missing]'));
     }
      pageDiv.appendChild(textContainer);
@@ -924,7 +964,6 @@ function createStorybookPagePreview(story, isFinal = false) {
 export function updateButtonVisibility(dayState) {
     const phaseName = GameState.getPhaseName(dayState);
     nextDayBtn.style.display = 'none'; // Hide by default
-    // Show 'Next Day' button only at the end of work phases
     if (phaseName === 'Day 1 Work') {
         nextDayBtn.style.display = 'inline-block';
         nextDayBtn.textContent = 'Proceed to Day 2 Reassignment';
@@ -937,21 +976,14 @@ export function updateButtonVisibility(dayState) {
 // --- Obstacle Related ---
 function getObstacleMessageForWorker(workerId) {
     const obstacles = GameState.getActiveObstacles ? GameState.getActiveObstacles() : [];
-    // Find the *active* obstacle affecting the worker today
-    const workerObstacle = obstacles.find(obs => obs.targetWorkerId === workerId && obs.type === 'capacity_reduction'); // Duration checked in gameState advanceDay
+    const workerObstacle = obstacles.find(obs => obs.targetWorkerId === workerId && obs.type === 'capacity_reduction');
     const worker = GameState.getWorkerById(workerId);
 
     if (worker && !worker.available && workerObstacle && workerObstacle.makesUnavailable) {
          return workerObstacle.shortMessage || 'Unavailable';
-    } else if (workerObstacle) {
-        // If affected but available, show message but don't mark as 'Unavailable' state
-        // The worker state function will show 'Idle (X pts left)' or 'Working'
-        // We only return the short message if they are *truly* unavailable due to the obstacle
-        return ''; // Don't return message if worker is still available
     } else if (worker && !worker.available) {
-        // If unavailable but no specific obstacle message found (e.g., maybe unblocking failed?)
         return 'Unavailable';
     }
-    // If available or no obstacle, this function shouldn't be called for unavailability message
     return '';
 }
+// --- END OF FILE ui.js ---
