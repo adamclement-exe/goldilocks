@@ -102,7 +102,7 @@
 
         <h3>Game Goal</h3>
         <ul>
-            <li>Complete as many <strong>User Stories</strong> (parts of the book) as possible by moving them to the final "Done" column.</li>
+            <li>Complete as many <strong>User Stories</strong> (parts of the book) as possible by moving them to the final <strong>"Publish"</strong> column.</li> {/* MODIFIED */}
             <li>Meet your chosen <strong>Definition of Done (DoD)</strong> by completing specific required stories by the end of Sprint 3 for bonus points.</li>
             <li>Higher <strong>Value</strong> (⭐) stories contribute more to the final "quality" of the storybook.</li>
         </ul>
@@ -131,7 +131,7 @@
              <strong>3. Work Day 1 Simulation:</strong>
              <ul>
                  <li>Workers automatically apply points to assigned stories in 'In Progress (Doing)' or 'Testing (Doing)'.</li>
-                 <li>Progress bars update. Stories finishing Development move to <strong>'In Progress (Done)'</strong> (Devs unassigned). Stories finishing Testing move to <strong>'Testing (Done)'</strong> (Testers unassigned), then automatically to the final <strong>'Done'</strong> column.</li>
+                 <li>Progress bars update. Stories finishing Development move to <strong>'In Progress (Done)'</strong> (Devs unassigned). Stories finishing Testing move to <strong>'Testing (Done)'</strong> (Testers unassigned), then automatically to the final <strong>"Publish"</strong> column.</li> {/* MODIFIED */}
              </ul>
          </div>
          <div class="phase-step">
@@ -155,13 +155,13 @@
              <strong>5. Work Day Simulation (Days 2-5):</strong>
              <ul>
                  <li>Workers apply points. Progress updates.</li>
-                 <li>Transitions: 'In Progress (Doing)' -> 'In Progress (Done)', 'Testing (Doing)' -> 'Testing (Done)' -> 'Done'.</li>
+                 <li>Transitions: 'In Progress (Doing)' -> 'In Progress (Done)', 'Testing (Doing)' -> 'Testing (Done)' -> 'Publish'.</li> {/* MODIFIED */}
              </ul>
          </div>
          <div class="phase-step">
              <strong>6. Sprint Review (End of Sprint):</strong>
              <ul>
-                 <li>See completed stories (from final 'Done' column), Velocity, Value, Cycle Time.</li>
+                 <li>See completed stories (from final 'Publish' column), Velocity, Value, Cycle Time.</li> {/* MODIFIED */}
                  <li>View storybook preview. Get Feedback & DoD progress.</li>
                  <li><strong>Action:</strong> Click "Proceed to Retrospective".</li>
              </ul>
@@ -176,11 +176,11 @@
 
         <h3>Key Concepts</h3>
         <ul>
-            <li><strong>Kanban Columns & Sub-Columns:</strong> Visualizes workflow: Ready -> In Progress (Doing -> Done) -> Testing (Doing -> Done) -> Done (Final).</li>
+            <li><strong>Kanban Columns & Sub-Columns:</strong> Visualizes workflow: Ready -> In Progress (Doing -> Done) -> Testing (Doing -> Done) -> Publish (Final).</li> {/* MODIFIED */}
             <li><strong>WIP Limits:</strong> Apply *only* to the 'Doing' sub-columns (In Progress and Testing). This prevents bottlenecks while allowing completed work (in 'Done' sub-columns) to wait. Shown as (X/Y Doing).</li>
             <li><strong>Multi-Assignment:</strong> Assign multiple Devs ('In Progress (Doing)') or Testers ('Testing (Doing)').</li>
-             <li><strong>Flow:</strong> Stories must complete Dev ('In Progress (Done)') before Testing can start. Assigning a Tester to an 'In Progress (Done)' story pulls it into 'Testing (Doing)'. Finished testing goes to 'Testing (Done)', then automatically to the final 'Done' column.</li>
-             <li><strong>Blockers/Obstacles/Aging/Cycle Time:</strong> Function similarly, but relate to work in the 'Doing' states. Aging in 'Done' sub-columns indicates downstream delays.</li>
+             <li><strong>Flow:</strong> Stories must complete Dev ('In Progress (Done)') before Testing can start. Assigning a Tester to an 'In Progress (Done)' story pulls it into 'Testing (Doing)'. Finished testing goes to 'Testing (Done)', then automatically to the final 'Publish' column.</li> {/* MODIFIED */}
+             <li><strong>Blockers/Obstacles/Aging/Cycle Time:</strong> Function similarly, but relate to work in the 'Doing' states. Aging in 'Done' sub-columns indicates downstream delays. Cycle Time measures duration until entering 'Publish'.</li> {/* MODIFIED */}
         </ul>
 
         <h3>Tips for Success</h3>
@@ -226,14 +226,11 @@
 
             <!-- In Progress Column (with Sub-columns) -->
             <div class="kanban-column" id="col-inprogress">
-                <!-- Main Header with WIP Limit for 'Doing' -->
                 <h3>In Progress (Dev) <span class="wip-limit">(<span class="wip-count">0</span>/<span class="wip-max">?</span> Doing)</span></h3>
-                 <!-- Doing Sub-column -->
                  <div class="sub-column" id="inprogress-doing-list-container">
                      <h4>Doing (Active Dev)</h4>
                      <div id="inprogress-doing-list" class="story-list" data-column-id="inprogress-doing"></div>
                  </div>
-                 <!-- Done Sub-column -->
                  <div class="sub-column" id="inprogress-done-list-container">
                       <h4>Done (Ready for Test)</h4>
                       <div id="inprogress-done-list" class="story-list" data-column-id="inprogress-done"></div>
@@ -242,23 +239,20 @@
 
             <!-- Testing Column (with Sub-columns) -->
             <div class="kanban-column" id="col-testing">
-                 <!-- Main Header with WIP Limit for 'Doing' -->
                  <h3>Testing <span class="wip-limit">(<span class="wip-count">0</span>/<span class="wip-max">?</span> Doing)</span></h3>
-                  <!-- Doing Sub-column -->
                   <div class="sub-column" id="testing-doing-list-container">
                       <h4>Doing (Active Test)</h4>
                       <div id="testing-doing-list" class="story-list" data-column-id="testing-doing"></div>
                   </div>
-                  <!-- Done Sub-column -->
                   <div class="sub-column" id="testing-done-list-container">
-                       <h4>Done (Ready for Done)</h4>
+                       <h4>Done (Ready to Publish)</h4> {/* UPDATED */}
                        <div id="testing-done-list" class="story-list" data-column-id="testing-done"></div>
                   </div>
             </div>
 
-            <!-- Done Column (Final) -->
-            <div class="kanban-column" id="col-done">
-                <h3>Done (Completed)</h3>
+            <!-- Final "Publish" Column -->
+            <div class="kanban-column" id="col-done"> {/* ID remains 'col-done' for JS consistency */}
+                <h3>Publish</h3> {/* UPDATED */}
                 <div id="done-list" class="story-list" data-column-id="done"></div>
             </div>
         </section>
@@ -302,7 +296,7 @@
              </div>
              <button type="submit" id="confirm-dod-btn">Set Goal & Start Planning</button>
          </form>
-         <button class="close-modal-btn">Cancel</button> <!-- Keep cancel on DoD choice -->
+         <button class="close-modal-btn">Cancel</button>
      </dialog>
 
     <dialog id="learning-modal">
@@ -311,7 +305,7 @@
          <ul>
              <li><strong>Visualize Workflow:</strong> Use the Kanban board with its columns and sub-columns (Doing/Done) to see work progress.</li>
              <li><strong>Limit Work-In-Progress (WIP):</strong> Apply limits *only* to the 'Doing' sub-columns (In Progress & Testing). This improves flow by preventing bottlenecks while allowing finished stages to wait.</li>
-             <li><strong>Manage Flow:</strong> Aim for smooth movement. Stories must finish Dev ('In Progress (Done)') before Testing starts. Assigning a Tester pulls work into 'Testing (Doing)'. Finished testing goes to 'Testing (Done)', then automatically to the final 'Done' column.</li>
+             <li><strong>Manage Flow:</strong> Aim for smooth movement. Stories must finish Dev ('In Progress (Done)') before Testing starts. Assigning a Tester pulls work into 'Testing (Doing)'. Finished testing goes to 'Testing (Done)', then automatically to the final 'Publish' column.</li> {/* MODIFIED */}
              <li><strong>Make Policies Explicit:</strong> Understand WIP limits, how work moves between sub-columns, how blockers are handled.</li>
              <li><strong>Implement Feedback Loops:</strong> Use Daily Scrums, Reviews, Retrospectives to inspect and adapt.</li>
          </ul>
@@ -319,7 +313,7 @@
          <ul>
              <li><strong>WIP Limits:</strong> Displayed on column headers (e.g., "WIP: 1/5 Doing"). Only count stories in 'In Progress (Doing)' and 'Testing (Doing)'. Assigning work will be blocked if it tries to move a story into a 'Doing' sub-column that is full.</li>
               <li><strong>WIP Aging:</strong> Shows days in the current 'Doing' or 'Done' sub-column. High age in 'Doing' might indicate a problem. High age in a 'Done' sub-column indicates a downstream bottleneck.</li>
-              <li><strong>Cycle Time:</strong> Average work days from starting 'In Progress (Doing)' to entering the final 'Done' column.</li>
+              <li><strong>Cycle Time:</strong> Average work days from starting 'In Progress (Doing)' to entering the final 'Publish' column.</li> {/* MODIFIED */}
              <li><strong>Blockers:</strong> Block stories in 'Doing' sub-columns. Assign a Senior Developer to unblock (costs 1 pt).</li>
              <li><strong>Multi-Assignment:</strong> Assign multiple workers to stories in 'Doing' sub-columns.</li>
          </ul>
@@ -341,19 +335,15 @@
         <h2 id="choice-story-title">Choose Implementation</h2>
         <div id="choice-options"></div>
         <button id="confirm-choice-btn">Confirm Choice</button>
-         <button class="close-modal-btn">Cancel</button> <!-- Keep cancel -->
+         <button class="close-modal-btn">Cancel</button>
      </dialog>
 
     <dialog id="worker-assignment-modal"> <!-- Day 1 Modal -->
         <h2>Assign Initial Workers for Sprint <span class="modal-sprint-number">1</span> - Day 1</h2>
         <p>Assign available Developers to stories in 'Ready'. Assigning the first worker moves the story to 'In Progress (Doing)' and uses WIP.</p>
-        <!-- WIP display ID matches the key used in ui.js updateWipDisplays -->
         <p id="inprogress-wip-info" class="wip-limit">In Progress (Doing) WIP: <span class="wip-count">0</span>/<span class="wip-max">?</span></p>
-        <div id="assignment-list">
-            <!-- Checkboxes generated by JS -->
-        </div>
+        <div id="assignment-list"></div>
         <button id="confirm-assignments-btn">Confirm Assignments & Start Day 1 Work</button>
-        <!-- Cancel button intentionally removed -->
     </dialog>
 
     <dialog id="daily-scrum-modal"> <!-- Day 2+ Modal -->
@@ -361,7 +351,6 @@
         <p>Review progress, obstacles. Queue unassignments ('✕'), assign/reassign workers (checkboxes), resolve blockers. Respect WIP limits for 'Doing' states.</p>
         <div id="daily-scrum-info">
              <p><strong>Current WIP (Doing):</strong>
-                 <!-- WIP display IDs match keys used in ui.js updateWipDisplays -->
                  <span class="wip-limit" id="daily-wip-inprogress">Dev: <span id="daily-wip-inprogress-count">0</span>/<span id="daily-wip-inprogress-max">?</span></span> |
                  <span class="wip-limit" id="daily-wip-testing">Test: <span id="daily-wip-testing-count">0</span>/<span id="daily-wip-testing-max">?</span></span>
              </p>
@@ -370,23 +359,18 @@
          <div id="blocker-resolution-section" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; display: none;">
              <h4>Resolve Blockers (Optional)</h4>
              <p>Assign an available <strong>Senior Developer</strong> (cost: <span id="unblocking-cost-display">1</span> pt).</p>
-             <div id="blocker-assignment-list">
-                 <!-- Select dropdowns generated by JS -->
-             </div>
+             <div id="blocker-assignment-list"></div>
          </div>
         <div id="reassignment-section" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
             <h4>Manage Work Assignments</h4>
-             <div id="reassignment-list">
-                 <!-- Items with checkboxes generated by JS -->
-             </div>
+             <div id="reassignment-list"></div>
         </div>
         <button id="confirm-reassignments-btn">Confirm Changes & Start Work Day <span id="confirm-work-day-num">?</span></button>
-        <!-- Cancel button intentionally removed -->
     </dialog>
 
     <dialog id="sprint-review-modal">
         <h2>Sprint <span class="modal-sprint-number">1</span> Review</h2>
-        <h3>Completed Stories (Final Done):</h3>
+        <h3>Published Stories:</h3> {/* UPDATED */}
         <ul id="review-completed-list"></ul>
         <p>Velocity (Points Completed): <span id="review-velocity">0</span></p>
         <p>Value Delivered: <span id="review-value">0</span> stars</p>
@@ -397,7 +381,6 @@
         <p id="review-sponsor-feedback">...</p>
          <p id="review-dod-progress" style="margin-top: 10px; font-style: italic; color: #555;">...</p>
         <button id="start-retro-btn">Proceed to Retrospective</button>
-        <!-- Optional: <button class="close-modal-btn">Close</button> -->
     </dialog>
 
     <dialog id="sprint-retrospective-modal">
@@ -412,13 +395,12 @@
             <button type="submit">Finish Retrospective & Start Next Sprint</button>
         </form>
          <button id="end-game-btn" style="display:none;">Finish Game</button>
-         <button class="close-modal-btn">Cancel</button> <!-- Keep cancel -->
+         <button class="close-modal-btn">Cancel</button>
     </dialog>
 
     <dialog id="final-storybook-modal">
         <h2>Your Goldilocks Storybook!</h2>
         <div id="final-storybook-pages"></div>
-        <!-- <button id="download-book-btn">Download/Screenshot</button> Note: Actual download not implemented -->
         <button id="play-again-btn">Play Again</button>
         <button class="close-modal-btn">Close</button>
     </dialog>
