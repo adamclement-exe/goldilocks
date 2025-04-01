@@ -5,15 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goldilocks: A Scrum Adventure</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- Add class to DoD option labels for styling -->
-    <style>
-        .dod-option { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 4px; }
-        .dod-option label { display: block; margin-left: 5px; cursor: pointer; }
-        .dod-option input[type="radio"] { margin-right: 5px; vertical-align: middle;}
-        .dod-option label strong { font-size: 1.1em; }
-        .dod-option small { display: block; color: #555; margin-left: 20px; font-size: 0.9em; margin-top: 3px;}
-        #dod-form button { margin-top: 15px; }
-    </style>
 </head>
 <body>
     <header>
@@ -70,37 +61,6 @@
     </main>
 
     <!-- Modals -->
-
-    <!-- NEW DoD Choice Modal (Show at Game Start) -->
-    <dialog id="dod-choice-modal">
-        <h2>Choose Your Goal (Definition of Done)</h2>
-        <p>Select the level of completeness you aim for by the end of Sprint 3. Meeting your goal grants bonus points!</p>
-        <form id="dod-form">
-            <div class="dod-option">
-                <input type="radio" id="dod-easy" name="dod-level" value="easy" checked>
-                <label for="dod-easy">
-                    <strong>Easy - Core Plot:</strong> Complete the essential story beats. (+<span class="bonus-points-easy">?</span> pts)
-                    <small>Focus: Basic beginning, middle, and end text.</small>
-                </label>
-            </div>
-            <div class="dod-option">
-                <input type="radio" id="dod-medium" name="dod-level" value="medium">
-                <label for="dod-medium">
-                    <strong>Medium - Illustrated Story:</strong> Complete the core plot with key illustrations and intro/conclusion. (+<span class="bonus-points-medium">?</span> pts)
-                    <small>Focus: Core text + important visuals.</small>
-                </label>
-            </div>
-            <div class="dod-option">
-                <input type="radio" id="dod-hard" name="dod-level" value="hard">
-                <label for="dod-hard">
-                    <strong>Hard - Polished & Marketable:</strong> Complete a rich story with detailed text, visuals, cover, and marketing. (+<span class="bonus-points-hard">?</span> pts)
-                    <small>Focus: High-quality choices, visuals, and extras.</small>
-                </label>
-            </div>
-            <button type="submit" id="confirm-dod-btn">Set Goal & Start Game</button>
-        </form>
-    </dialog>
-
     <dialog id="learning-modal">
         <h2>Scrum & Kanban Basics</h2>
         <p>Content about Product Backlog, Sprints, Kanban etc. goes here.</p>
@@ -128,7 +88,7 @@
         <button id="confirm-choice-btn">Confirm Choice</button>
      </dialog>
 
-    <!-- Worker Assignment Modal -->
+    <!-- NEW Worker Assignment Modal -->
     <dialog id="worker-assignment-modal">
         <h2>Assign Workers for Sprint <span class="modal-sprint-number">1</span></h2>
         <p>Assign available workers to stories in the Sprint Backlog.</p>
@@ -198,7 +158,7 @@
     <dialog id="final-storybook-modal">
         <h2>Your Goldilocks Storybook!</h2>
         <div id="final-storybook-pages">
-            <!-- Generated pages go here, including DoD status -->
+            <!-- Generated pages go here -->
         </div>
         <button id="download-book-btn">Download/Screenshot</button>
         <button id="play-again-btn">Play Again</button>
