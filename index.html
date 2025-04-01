@@ -13,6 +13,50 @@
         .dod-option label strong { font-size: 1.1em; }
         .dod-option small { display: block; color: #555; margin-left: 20px; font-size: 0.9em; margin-top: 3px;}
         #dod-form button { margin-top: 15px; }
+
+        /* Styles for checkbox assignment in Day 1 Modal */
+        .worker-checkbox-container {
+            display: grid; /* Use grid for better alignment */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsive columns */
+            gap: 5px 10px; /* Row and column gap */
+            padding-left: 10px; /* Indent checkboxes slightly */
+            margin-top: 5px;
+        }
+        .worker-checkbox-option {
+            display: flex; /* Align checkbox and label */
+            align-items: center;
+        }
+        .worker-checkbox-option input[type="checkbox"] {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        .worker-checkbox-option label {
+            font-weight: normal; /* Normal weight for worker names */
+            cursor: pointer;
+            font-size: 0.9em; /* Slightly smaller text for options */
+        }
+        .worker-checkbox-option input[type="checkbox"]:disabled + label {
+            color: #aaa; /* Gray out text for disabled workers */
+            cursor: not-allowed;
+            text-decoration: line-through; /* Optional: strike-through */
+        }
+         .assignment-item > strong { /* Style story title in modal */
+             font-size: 1.05em;
+             color: #333;
+         }
+         .assignment-item .story-details { /* Minor details */
+             font-size: 0.85em;
+             color: #666;
+             margin-bottom: 5px;
+         }
+         .wip-limit-warning {
+             color: red;
+             font-size: 0.9em;
+             font-weight: bold;
+             margin-left: 5px;
+             display: none; /* Initially hidden */
+         }
+
     </style>
 </head>
 <body>
@@ -112,52 +156,62 @@
          </ul>
          <h4>Game Specifics</h4>
          <ul>
-             <li><strong>WIP Limits:</strong> Displayed on column headers (e.g., "WIP: 1/2"). Assigning work will be blocked if a limit is reached.</li>
+             <li><strong>WIP Limits:</strong> Displayed on column headers (e.g., "WIP: 1/5"). Assigning work will be blocked if a limit is reached when moving a story into a column.</li>
               <li><strong>WIP Aging:</strong> Shows how many days a card has been in 'In Progress' or 'Testing' (e.g., "Age: 2d"). High age might indicate a problem or bottleneck.</li>
               <li><strong>Cycle Time:</strong> Calculated in Sprint Review. Measures the average time from starting development ('In Progress') to finishing testing ('Done'). Lower is generally better.</li>
-             <li><strong>Blockers:</strong> Obstacles can block stories (indicated by 🟧 border/icon). Blocked stories cannot progress and increase WIP age. Assign a <strong>Senior Developer</strong> during the Reassignment phase to unblock a story (costs points!).</li>
+             <li><strong>Blockers:</strong> Obstacles can block stories (indicated by 🟧 border/icon). Blocked stories cannot progress. Assign a <strong>Senior Developer</strong> during the Reassignment phase to unblock a story (costs <span id="unblocking-cost">1</span> pt!).</li>
+             <li><strong>Multi-Assignment:</strong> You can assign multiple workers (Devs or Testers) to the same story during the Assignment/Reassignment phases to speed up progress.</li>
          </ul>
         <button class="close-modal-btn">Close</button>
     </dialog>
 
     <dialog id="sprint-planning-modal">
         <h2>Sprint <span class="modal-sprint-number">1</span> Planning</h2>
-        <p>Select stories from the Product Backlog by checking the box. They will move to the 'Sprint Backlog (Ready)' column.</p>
+        <p>Select stories from the Product Backlog. Choose implementations if needed. Commit when ready.</p>
         <p>Team Capacity: <span class="modal-team-capacity">--</span> points</p>
         <p>Selected Points: <span id="modal-selected-points">0</span></p>
-        <div id="planning-backlog-selection">
-            <!-- Populated dynamically -->
-        </div>
-        <p id="capacity-warning" style="color: red; display: none;">Warning: Exceeding team capacity! This may reduce efficiency.</p>
+        <div id="planning-backlog-selection"></div>
+        <p id="capacity-warning" style="color: red; display: none;">Warning: Exceeding team capacity!</p>
         <button id="commit-sprint-btn">Commit to Sprint & Assign Workers</button>
         <button class="close-modal-btn">Cancel</button>
     </dialog>
 
      <dialog id="procedural-choice-modal">
         <h2 id="choice-story-title">Choose Implementation</h2>
-        <div id="choice-options">
-            <!-- Options loaded here -->
-        </div>
+        <div id="choice-options"></div>
         <button id="confirm-choice-btn">Confirm Choice</button>
      </dialog>
 
-    <!-- Worker Assignment Modal (Day 1) -->
+    <!-- Worker Assignment Modal (Day 1 - MULTIPLE workers via checkboxes) -->
     <dialog id="worker-assignment-modal">
-        <h2>Assign Workers for Sprint <span class="modal-sprint-number">1</span> - Day 1</h2>
-        <p>Assign available workers to stories in the Sprint Backlog. Stories move to 'In Progress' upon assignment. Respect WIP limits!</p>
-        <!-- WIP Limit info specific to this modal -->
+        <h2>Assign Initial Workers for Sprint <span class="modal-sprint-number">1</span> - Day 1</h2>
+        <p>Assign available Developers to stories in the Sprint Backlog. You can assign multiple workers. Respect WIP limits!</p>
         <p id="inprogress-wip-info" class="wip-limit">In Progress WIP: <span class="wip-count">0</span>/<span class="wip-max">?</span></p>
-        <div id="assignment-list"></div>
+        <div id="assignment-list">
+            <!-- Example Structure (Generated by JS):
+            <div class="assignment-item" data-story-id="story-1">
+                 <strong>Story Title</strong> (Effort: X) <span class="wip-limit-warning"> (WIP Limit Reached)</span> <br>
+                 <span class="story-details">Tags: Tag1, Tag2</span>
+                 <label>Assign Developers:</label>
+                 <div class="worker-checkbox-container">
+                     <div class="worker-checkbox-option">
+                         <input type="checkbox" id="assign-story-1-w1" value="w1" data-story-id="story-1">
+                         <label for="assign-story-1-w1">Worker Name (Area Skill - Pts)</label>
+                     </div>
+                     </div>
+                 </div>
+            </div>
+            -->
+        </div>
         <button id="confirm-assignments-btn">Confirm Assignments & Start Day 1 Work</button>
         <button class="close-modal-btn">Cancel</button>
     </dialog>
 
-    <!-- Daily Scrum Modal - Now used for Day 2 Reassignment & Blocker Resolution -->
+    <!-- Daily Scrum Modal - Day 2-5 Reassignment/Add/Unblock (Structure is mostly ok) -->
     <dialog id="daily-scrum-modal">
-        <h2>Daily Scrum & Reassignment - Day <span id="daily-scrum-day">2</span></h2>
-        <p>Review progress, obstacles, and reassign workers or resolve blockers if needed. Respect WIP limits!</p>
-        <div id="daily-scrum-info" style="margin-bottom: 15px; padding: 10px; background-color: #f0f0f0; border-radius: 4px;">
-             <!-- WIP Counts Display -->
+        <h2>Daily Scrum & Reassignment - Day <span id="daily-scrum-day">?</span></h2>
+        <p>Review progress, obstacles. Unassign workers, add workers to stories, or resolve blockers. Respect WIP limits!</p>
+        <div id="daily-scrum-info">
              <p><strong>Current WIP:</strong>
                  <span class="wip-limit" id="daily-wip-inprogress">Dev: <span id="daily-wip-inprogress-count">0</span>/<span id="daily-wip-inprogress-max">?</span></span> |
                  <span class="wip-limit" id="daily-wip-testing">Test: <span id="daily-wip-testing-count">0</span>/<span id="daily-wip-testing-max">?</span></span>
@@ -165,101 +219,98 @@
         </div>
         <div id="obstacle-display" style="color: orange; margin-top: 10px;"></div>
 
-         <div id="blocker-resolution-section" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; display: none;"> <!-- Hidden by default -->
+         <!-- Blocker Resolution Section -->
+         <div id="blocker-resolution-section" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; display: none;">
              <h4>Resolve Blockers (Optional)</h4>
-             <p>Assign a <strong>Senior Developer</strong> (Text/Visual) worker to unblock a story. This consumes <span id="unblocking-cost">1</span> point for their day.</p>
-             <div id="blocker-assignment-list">
-                <!-- Populated dynamically if blockers exist -->
-                <p>Loading blocked stories...</p>
-             </div>
+             <p>Assign a <strong>Senior Developer</strong> (cost: <span id="unblocking-cost-display">1</span> pt).</p> <!-- updated span id -->
+             <div id="blocker-assignment-list"> <!-- Populated dynamically --> </div>
          </div>
 
-        <div id="reassignment-section" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-            <h4>Reassign Work (Optional)</h4>
-             <div id="reassignment-list">
-                 <p>Loading current assignments...</p>
-             </div>
+        <!-- Reassignment / Add Worker Section -->
+        <div id="reassignment-section" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+            <h4>Manage Work Assignments</h4>
+             <div id="reassignment-list"> <!-- Populated dynamically --> </div>
         </div>
 
-        <button id="confirm-reassignments-btn">Confirm Changes & Start Day 2 Work</button>
+        <button id="confirm-reassignments-btn">Confirm Changes & Start Work Day <span id="confirm-work-day-num">?</span></button>
+         <button class="close-modal-btn">Cancel</button> <!-- Added cancel button -->
     </dialog>
 
+    <!-- Sprint Review Modal -->
     <dialog id="sprint-review-modal">
         <h2>Sprint <span class="modal-sprint-number">1</span> Review</h2>
         <h3>Completed Stories:</h3>
         <ul id="review-completed-list"></ul>
         <p>Velocity (Points Completed): <span id="review-velocity">0</span></p>
         <p>Value Delivered: <span id="review-value">0</span> stars</p>
-        <p>Average Cycle Time: <span id="review-cycle-time">N/A</span> days</p> <!-- New Metric -->
+        <p>Average Cycle Time: <span id="review-cycle-time">N/A</span> days</p>
         <h3>Mini Demo (Storybook Pages):</h3>
         <div id="review-storybook-preview"></div>
         <h3>Sponsor Feedback:</h3>
         <p id="review-sponsor-feedback">...</p>
-         <p id="review-dod-progress" style="margin-top: 10px; font-style: italic; color: #555;">...</p> <!-- DoD Progress Feedback -->
+         <p id="review-dod-progress" style="margin-top: 10px; font-style: italic; color: #555;">...</p>
         <button id="start-retro-btn">Proceed to Retrospective</button>
     </dialog>
 
+    <!-- Sprint Retrospective Modal -->
     <dialog id="sprint-retrospective-modal">
         <h2>Sprint <span class="modal-sprint-number">1</span> Retrospective</h2>
         <form id="retro-form">
             <label for="retro-well">What went well this Sprint?</label>
-            <textarea id="retro-well" name="retro-well" rows="3" placeholder="e.g., We managed WIP well, Testers kept up, Handled the blocker quickly..."></textarea>
-
+            <textarea id="retro-well" name="retro-well" rows="3" placeholder="e.g., Good collaboration on Story X, Managed WIP well..."></textarea>
             <label for="retro-improve">What could be improved?</label>
-            <textarea id="retro-improve" name="retro-improve" rows="3" placeholder="e.g., Too much work piled up in Testing, Estimation was off, Slow to unblock story X..."></textarea>
-
+            <textarea id="retro-improve" name="retro-improve" rows="3" placeholder="e.g., Testing bottleneck, Blockers took too long..."></textarea>
             <label for="retro-change">What will we try differently next Sprint?</label>
-            <textarea id="retro-change" name="retro-change" rows="3" placeholder="e.g., Lower the Testing WIP limit, Assign seniors to blockers immediately, Focus on finishing items before starting new ones..."></textarea>
-
+            <textarea id="retro-change" name="retro-change" rows="3" placeholder="e.g., Assign multiple testers earlier, Adjust WIP limits..."></textarea>
             <button type="submit">Finish Retrospective & Start Next Sprint</button>
         </form>
          <button id="end-game-btn" style="display:none;">Finish Game</button>
+         <button class="close-modal-btn">Cancel</button> <!-- Added cancel button -->
     </dialog>
 
+    <!-- Final Storybook Modal -->
     <dialog id="final-storybook-modal">
         <h2>Your Goldilocks Storybook!</h2>
-        <div id="final-storybook-pages">
-            <!-- Generated pages go here, including DoD status -->
-        </div>
-        <button id="download-book-btn">Download/Screenshot</button>
+        <div id="final-storybook-pages"></div>
+        <button id="download-book-btn">Download/Screenshot</button> <!-- Note: Actual download not implemented -->
         <button id="play-again-btn">Play Again</button>
         <button class="close-modal-btn">Close</button>
     </dialog>
 
     <!-- Story Card Template -->
     <template id="story-card-template">
-        <article class="story-card"> <!-- Add data-blocked="true/false" and data-aging="true/false" via JS -->
+        <article class="story-card"> <!-- data-blocked, data-aging set by JS -->
             <h4 class="story-title">Story Title</h4>
             <div class="story-meta">
                 <span>Effort: <span class="story-effort">?</span></span>
                 <span>Value: <span class="story-value">?</span>⭐</span>
-                <span class="story-age" style="display: none;">Age: ?d</span> <!-- WIP Age (hidden initially, updated by JS) -->
+                <span class="story-age" style="display: none;">Age: ?d</span>
             </div>
             <div class="story-tags"></div>
+            <!-- Updated Assignment Display -->
             <div class="story-assignment">Assigned: <span class="story-worker">None</span></div>
-             <!-- Blocker Info -->
              <div class="blocker-info" style="display: none;">🟧 BLOCKED!</div>
             <!-- Progress Bars -->
             <div class="story-progress" style="display: none;">
                  <label>Dev:</label>
                  <progress class="dev-progress" value="0" max="100"></progress>
-                 <span class="dev-points-remaining"></span> <!-- Show points -->
+                 <span class="dev-points-remaining"></span>
             </div>
              <div class="story-testing-progress" style="display: none;">
                  <label>Test:</label>
                  <progress class="test-progress" value="0" max="100"></progress>
-                  <span class="test-points-remaining"></span> <!-- Show points -->
+                  <span class="test-points-remaining"></span>
             </div>
         </article>
     </template>
 
     <!-- Worker Template -->
      <template id="worker-template">
-        <div class="worker-status"> <!-- data-state attribute will be set by JS -->
+        <div class="worker-status"> <!-- data-state set by JS -->
             <span class="worker-avatar"></span>
             <span class="worker-name">Worker Name</span>
             (<span class="worker-area">Area</span> - <span class="worker-skill">Skill</span>: <span class="worker-points">X</span> pts/day)
-            - <span class="worker-state">Idle</span> <!-- State text updated by JS -->
+            - <span class="worker-state">Idle</span>
         </div>
     </template>
 
