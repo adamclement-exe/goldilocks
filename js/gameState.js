@@ -30,9 +30,9 @@ let state = {
     currentSprint: 1,
     currentDay: 0, // 0-11 structure for 5 work days
     productBacklog: [],
-    sprintBacklog: [],
+    sprintBacklog: [], // IDs of stories committed to the sprint
     stories: {}, // Story objects keyed by ID
-    team: [ // 8 Staff members
+    team: [
         { id: 'w1', name: 'Vicky Senior', area: 'Visual', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
         { id: 'w2', name: 'Val Junior', area: 'Visual', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
         { id: 'w3', name: 'Terry Senior', area: 'Text', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
@@ -43,16 +43,16 @@ let state = {
         { id: 'w8', name: 'Walter Junior', area: 'Testing', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
     ],
     teamCapacity: 0,
-    wipLimits: { // Dev WIP can be adjusted here
-        inprogress: 5,
-        testing: 2
+    wipLimits: { // *** WIP Limits for 'Doing' sub-states ***
+        inprogress: 5, // Max in InProgress-Doing
+        testing: 3    // Max in Testing-Doing (Adjusted)
     },
-    currentWip: {
+    currentWip: { // Counts items ONLY in 'Doing' sub-states
         inprogress: 0,
         testing: 0
     },
-    completedStories: [],
-    currentSprintCompleted: [],
+    completedStories: [], // Stories in final 'done' state (overall)
+    currentSprintCompleted: [], // Stories moved to final 'done' this sprint
     velocityHistory: [],
     retrospectiveNotes: [],
     obstacles: [],
@@ -63,7 +63,7 @@ let state = {
 };
 
 // --- Constants ---
-const TESTING_EFFORT_PER_STORY = 1; // Base testing effort
+const TESTING_EFFORT_PER_STORY = 1; // Base testing effort for simplicity
 export const UNBLOCKING_COST = 1;
 
 // --- Initialization ---
@@ -85,7 +85,7 @@ export function loadInitialState(initialBacklog) {
             { id: 'w8', name: 'Walter Junior', area: 'Testing', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
         ],
         teamCapacity: 0,
-        wipLimits: { inprogress: 5, testing: 2 }, // WIP Limits
+        wipLimits: { inprogress: 5, testing: 3 }, // *** Updated WIP Limits ***
         currentWip: { inprogress: 0, testing: 0 },
         completedStories: [],
         currentSprintCompleted: [],
@@ -104,44 +104,44 @@ export function loadInitialState(initialBacklog) {
         state.stories[storyId] = {
             ...storyData,
             id: storyId,
-            status: 'backlog',
-            remainingEffort: storyData.effort, // Scaled effort from stories.js
+            status: 'backlog', // Main status: backlog, ready, inprogress, testing, done
+            subStatus: null,  // Sub-status: null, doing, done (within inprogress/testing)
+            remainingEffort: storyData.effort,
             testingEffortRemaining: TESTING_EFFORT_PER_STORY,
             progress: 0,
             testingProgress: 0,
-            assignedWorkers: [], // Now an array
+            assignedWorkers: [],
             chosenImplementation: null,
-            baseEffort: storyData.effort, // Scaled effort from stories.js
+            baseEffort: storyData.effort,
             isBlocked: false,
-            daysInState: 0,
-            enteredInProgressTimestamp: null,
-            completedTimestamp: null,
+            daysInState: 0, // Tracks days in current status/subStatus combo
+            enteredInProgressTimestamp: null, // Timestamp when entering inprogress-doing
+            completedTimestamp: null, // Timestamp when entering final done
         };
         state.productBacklog.push(storyId);
     });
-    calculateTeamCapacity(); // Calculate based on new team and 5 work days
-    console.log("Initial state loaded (Multi-Assign Ready):", state);
-    console.log("Calculated Team Capacity:", state.teamCapacity);
+    calculateTeamCapacity();
+    console.log("Initial state loaded (with SubStatus & updated WIP):", JSON.parse(JSON.stringify(state))); // Deep copy for logging
 }
 
 // --- Getters ---
 export function getProductBacklog() { return state.productBacklog.map(id => state.stories[id]).filter(Boolean); }
-export function getSprintBacklog() { return state.sprintBacklog.map(id => state.stories[id]).filter(Boolean); }
+export function getSprintBacklogStories() { return state.sprintBacklog.map(id => state.stories[id]).filter(Boolean); } // Gets actual stories in sprint
 export function getStory(id) { return state.stories[id]; }
 export function getAllStories() { return state.stories; }
 export function getTeam() { return state.team; }
-// getAvailableWorkers: Workers free AND available AND not unblocking
 export function getAvailableWorkers() { return state.team.filter(w => w.available && !w.assignedStory && !w.isUnblocking); }
-// getAvailableWorkersForStory: Available workers suitable for the *current* status of a specific story
+// getAvailableWorkersForStory: Suitable workers for the *current* state/sub-state of a story
 export function getAvailableWorkersForStory(storyId) {
     const story = getStory(storyId);
     if (!story) return [];
-    const available = getAvailableWorkers(); // Get generally available workers
+    const available = getAvailableWorkers();
+
     return available.filter(w => {
-        // Dev needed? Worker is Dev?
-        if ((story.status === 'inprogress' || story.status === 'ready') && w.area !== 'Testing') return true; // Devs for Ready & InProgress
-        // Tester needed? Worker is Tester?
-        if (story.status === 'testing' && w.area === 'Testing') return true;
+        // Dev needed for 'ready' or 'inprogress-doing'
+        if ((story.status === 'ready' || (story.status === 'inprogress' && story.subStatus === 'doing')) && w.area !== 'Testing') return true;
+        // Tester needed for 'inprogress-done' (to pull into testing) or 'testing-doing'
+        if (((story.status === 'inprogress' && story.subStatus === 'done') || (story.status === 'testing' && story.subStatus === 'doing')) && w.area === 'Testing') return true;
         return false;
     });
 }
@@ -161,177 +161,191 @@ export function getDodMetStatus() { return state.dodMet; }
 export function getMissingDodStories() { return state.missingDodStories; }
 export function getDodDefinition(level) { return dodDefinitions[level]; }
 export function getWipLimits() { return state.wipLimits; }
-export function getCurrentWip() { return state.currentWip; }
-export function getAssignedWorkersForStory(storyId) { // Helper to get worker objects
+export function getCurrentWip() { return state.currentWip; } // Returns counts of 'doing' states
+export function getAssignedWorkersForStory(storyId) {
     const story = getStory(storyId);
     if (!story || !story.assignedWorkers) return [];
-    return story.assignedWorkers.map(id => getWorkerById(id)).filter(Boolean); // Map IDs to worker objects
+    return story.assignedWorkers.map(id => getWorkerById(id)).filter(Boolean);
 }
 
 
 // --- Mutations ---
 
+// Updates WIP counts based ONLY on 'doing' sub-statuses
 function updateWipCount() {
     state.currentWip.inprogress = 0;
     state.currentWip.testing = 0;
     Object.values(state.stories).forEach(story => {
-        if (story.status === 'inprogress') {
+        if (story.status === 'inprogress' && story.subStatus === 'doing') {
             state.currentWip.inprogress++;
-        } else if (story.status === 'testing') {
+        } else if (story.status === 'testing' && story.subStatus === 'doing') {
             state.currentWip.testing++;
         }
     });
-     console.log(`WIP Updated: In Progress=${state.currentWip.inprogress}, Testing=${state.currentWip.testing}`);
+     console.log(`WIP Counts Updated: InProgress(Doing)=${state.currentWip.inprogress}/${state.wipLimits.inprogress}, Testing(Doing)=${state.currentWip.testing}/${state.wipLimits.testing}`);
 }
 
+// Updates story state and resets age. Handles WIP count updates.
+function setStoryState(storyId, newStatus, newSubStatus = null) {
+    const story = state.stories[storyId];
+    if (!story) { console.error(`Cannot set state for non-existent story ${storyId}`); return; }
+
+    const oldStatus = story.status;
+    const oldSubStatus = story.subStatus;
+
+    if (oldStatus === newStatus && oldSubStatus === newSubStatus) return; // No change
+
+    console.log(`Story ${storyId} state changing from ${oldStatus}/${oldSubStatus} to ${newStatus}/${newSubStatus}`);
+    story.status = newStatus;
+    story.subStatus = newSubStatus;
+    story.daysInState = 0; // Reset WIP age for the new state
+
+    // Track Cycle Time Start (when entering inprogress-doing)
+    if (newStatus === 'inprogress' && newSubStatus === 'doing' && !(oldStatus === 'inprogress' && oldSubStatus === 'doing')) {
+        if (story.enteredInProgressTimestamp === null) { // Only set if not already set
+             story.enteredInProgressTimestamp = state.currentDay;
+             console.log(`Story ${storyId} entered 'inprogress-doing' FIRST TIME on day index ${state.currentDay}`);
+        } else {
+             console.log(`Story ${storyId} re-entered 'inprogress-doing'. Start timestamp remains ${story.enteredInProgressTimestamp}.`);
+        }
+    }
+
+    // Track Cycle Time End (when entering final 'done')
+    if (newStatus === 'done' && oldStatus !== 'done') {
+        story.completedTimestamp = state.currentDay;
+         console.log(`Story ${storyId} entered final 'done' on day index ${state.currentDay}`);
+         // Add to completed lists
+        if (!state.currentSprintCompleted.includes(storyId)) state.currentSprintCompleted.push(storyId);
+        if (!state.completedStories.includes(storyId)) state.completedStories.push(storyId);
+    }
+
+    // Unassign workers if story moves OUT of an active 'doing' state or into final 'done'
+    const wasDoing = (oldStatus === 'inprogress' && oldSubStatus === 'doing') || (oldStatus === 'testing' && oldSubStatus === 'doing');
+    const isNowDoing = (newStatus === 'inprogress' && newSubStatus === 'doing') || (newStatus === 'testing' && newSubStatus === 'doing');
+
+    if ( (wasDoing && !isNowDoing) || newStatus === 'done' ) {
+        if (story.assignedWorkers.length > 0) {
+             console.log(`Story ${storyId} moved to inactive/final state ${newStatus}/${newSubStatus}. Unassigning workers [${story.assignedWorkers.join(', ')}].`);
+             // Create a copy as unassign modifies the array
+             [...story.assignedWorkers].forEach(workerId => unassignWorkerFromStory(storyId, workerId));
+        }
+    }
+
+    updateWipCount(); // Update WIP counts after any state changes and potential unassignments
+}
+
+
 export function addStoryToSprint(storyId) {
-    if (!state.sprintBacklog.includes(storyId) && state.productBacklog.includes(storyId)) {
+    const story = state.stories[storyId];
+    if (story && story.status === 'backlog' && !state.sprintBacklog.includes(storyId)) {
         state.sprintBacklog.push(storyId);
         state.productBacklog = state.productBacklog.filter(id => id !== storyId);
-        updateStoryStatus(storyId, 'ready');
-        console.log(`Story ${storyId} added to sprint backlog state.`);
+        setStoryState(storyId, 'ready', null); // Move to ready state
+        console.log(`Story ${storyId} added to sprint backlog state (ready).`);
         return true;
     }
-    console.warn(`Failed to add story ${storyId} to sprint backlog state.`);
+    console.warn(`Failed to add story ${storyId} to sprint backlog state. Current status: ${story?.status}`);
     return false;
 }
 
 export function removeStoryFromSprint(storyId) {
-     if (state.sprintBacklog.includes(storyId)) {
+    const story = state.stories[storyId];
+     if (story && state.sprintBacklog.includes(storyId)) {
         state.sprintBacklog = state.sprintBacklog.filter(id => id !== storyId);
-        const story = state.stories[storyId];
-        if(story) {
-            if (!state.productBacklog.includes(storyId)) {
-                 state.productBacklog.unshift(storyId);
-            }
-            // Unassign any workers first
-            if (story.assignedWorkers && story.assignedWorkers.length > 0) {
-                // Create a copy as unassign modifies the array
-                [...story.assignedWorkers].forEach(workerId => unassignWorkerFromStory(storyId, workerId));
-            }
-            // Reset relevant fields
-            const originalBaseEffort = story.baseEffort;
-            story.chosenImplementation = null;
-            story.remainingEffort = originalBaseEffort;
-            story.testingEffortRemaining = TESTING_EFFORT_PER_STORY;
-            story.progress = 0;
-            story.testingProgress = 0;
-            story.assignedWorkers = []; // Ensure it's reset
-            story.enteredInProgressTimestamp = null;
-            story.completedTimestamp = null;
-            story.isBlocked = false;
-            updateStoryStatus(storyId, 'backlog'); // Handles WIP Update implicitly if needed
-            console.log(`Story ${storyId} removed from sprint backlog state.`);
-            return true;
+
+        if (!state.productBacklog.includes(storyId)) {
+             state.productBacklog.unshift(storyId); // Add back to top of product backlog
         }
+
+        // Unassign any workers first
+        if (story.assignedWorkers && story.assignedWorkers.length > 0) {
+            [...story.assignedWorkers].forEach(workerId => unassignWorkerFromStory(storyId, workerId));
+        }
+
+        // Reset relevant fields
+        const originalBaseEffort = story.baseEffort; // Revert to original base effort
+        story.chosenImplementation = null;
+        story.remainingEffort = originalBaseEffort;
+        story.testingEffortRemaining = TESTING_EFFORT_PER_STORY;
+        story.progress = 0;
+        story.testingProgress = 0;
+        story.assignedWorkers = [];
+        story.enteredInProgressTimestamp = null;
+        story.completedTimestamp = null;
+        story.isBlocked = false;
+        story.daysInState = 0;
+
+        setStoryState(storyId, 'backlog', null); // Set back to backlog state
+
+        console.log(`Story ${storyId} removed from sprint state, returned to product backlog.`);
+        return true;
     }
-    console.warn(`Failed to remove story ${storyId} from sprint backlog state.`);
+    console.warn(`Failed to remove story ${storyId} from sprint state.`);
     return false;
 }
 
-export function updateStoryStatus(storyId, newStatus) {
-    const story = state.stories[storyId];
-    if (!story) { console.error(`Cannot update status for non-existent story ${storyId}`); return; }
-    const oldStatus = story.status;
-    if (oldStatus === newStatus) return;
 
-    console.log(`Story ${storyId} status changing from ${oldStatus} to ${newStatus}`);
-    story.status = newStatus;
-    story.daysInState = 0; // Reset WIP age
-
-    // Track Cycle Time Start
-    if (newStatus === 'inprogress' && oldStatus === 'ready') {
-        story.enteredInProgressTimestamp = state.currentDay;
-        console.log(`Story ${storyId} entered 'inprogress' on day index ${state.currentDay}`);
-    }
-
-    // Unassign workers if story moves out of a working state
-    // This is crucial when moving back from 'inprogress' to 'ready' or 'backlog'
-    if ((newStatus !== 'inprogress' && newStatus !== 'testing') && (oldStatus === 'inprogress' || oldStatus === 'testing')) {
-         if (story.assignedWorkers && story.assignedWorkers.length > 0) {
-            console.warn(`Story ${storyId} moved to ${newStatus} with workers [${story.assignedWorkers.join(', ')}] still assigned. Unassigning all.`);
-            [...story.assignedWorkers].forEach(workerId => unassignWorkerFromStory(storyId, workerId));
-        }
-    }
-
-    updateWipCount(); // Update overall WIP counts AFTER potential unassignments
-}
-
-
-// Assigns ONE worker to a story. Handles checks including WIP limits.
+// Assigns ONE worker to a story. Handles state transitions & WIP limits for 'Doing' states.
 export function assignWorkerToStory(workerId, storyId) {
     const worker = state.team.find(w => w.id === workerId);
     const story = state.stories[storyId];
 
     if (!worker || !story) { console.error(`Assign failed: Worker ${workerId} or Story ${storyId} not found.`); return false; }
     if (!worker.available) { console.warn(`Assign failed: Worker ${worker.name} unavailable.`); return false; }
-    if (worker.assignedStory) { // Check if worker is assigned to ANY story
-        // Allow reassigning to the same story (shouldn't happen via UI flow but good safeguard)
-        if (worker.assignedStory !== storyId) {
-             console.warn(`Assign failed: Worker ${worker.name} already on story ${worker.assignedStory}.`);
-             // Optional: alert(`Worker ${worker.name} is already assigned to story ${getStory(worker.assignedStory)?.title || 'another task'}.`);
-             return false;
-        }
-    }
-    if (story.assignedWorkers.includes(workerId)) {
-         console.warn(`Assign failed: Worker ${worker.name} is already assigned to story ${story.title}.`);
-         return false; // Prevent adding duplicates
-    }
+    if (worker.assignedStory) { console.warn(`Assign failed: Worker ${worker.name} already assigned to story ${worker.assignedStory}.`); return false; }
+    if (story.assignedWorkers.includes(workerId)) { console.warn(`Assign failed: Worker ${worker.name} is already assigned to story ${story.title}.`); return false; }
     if (worker.isUnblocking) { console.warn(`Assign failed: Worker ${worker.name} is unblocking.`); return false; }
     if (story.status === 'done' || story.status === 'backlog') { console.warn(`Assign failed: Cannot assign worker to story ${story.title} in status ${story.status}.`); return false; }
     if (story.isBlocked) { console.warn(`Assign failed: Story ${story.title} is blocked.`); return false; }
 
-
     let targetStatus = story.status;
-    let requiresStatusChange = false;
+    let targetSubStatus = story.subStatus;
+    let requiresStateChange = false;
+    let wipCheckNeeded = null; // 'inprogress' or 'testing' if entering a 'doing' state
 
-    // Role/Status Check & WIP Limit Check
-    if (worker.area === 'Testing') {
-        // Assigning Tester
-        if (story.status === 'testing') {
-             // Assigning tester to testing story. WIP Check is only relevant if adding the *first* tester
-             // *and* the column is already full.
-             const currentlyHasTester = story.assignedWorkers.some(id => getWorkerById(id)?.area === 'Testing');
-             if (!currentlyHasTester && state.currentWip.testing >= state.wipLimits.testing) {
-                 console.warn(`Assign failed: WIP Limit for 'Testing' (${state.wipLimits.testing}) reached when adding first tester.`);
-                 alert(`WIP Limit Reached: Cannot assign first tester to ${story.title} in 'Testing' (Limit: ${state.wipLimits.testing}).`);
-                 return false;
-             }
+    // --- Determine Target State & WIP Check ---
+    if (worker.area !== 'Testing') { // Assigning a Dev
+        if (story.status === 'ready') {
+            targetStatus = 'inprogress'; targetSubStatus = 'doing'; requiresStateChange = true; wipCheckNeeded = 'inprogress';
+        } else if (story.status === 'inprogress' && story.subStatus === 'doing') {
+            // Adding another Dev to InProgress-Doing (no state change, no WIP check needed for this action)
         } else {
-            console.warn(`Assign failed: Tester ${worker.name} cannot be assigned to story ${story.title} in status ${story.status}.`);
-            return false;
+            console.warn(`Assign failed: Dev ${worker.name} cannot work on story ${story.title} in state ${story.status}/${story.subStatus}.`); return false;
         }
-    } else { // Assigning Dev (Visual/Text)
-         if (story.status === 'ready') {
-             // Assigning Dev to 'ready' story. This *might* trigger status change. Check WIP Limit *before* changing status.
-             if (state.currentWip.inprogress >= state.wipLimits.inprogress) {
-                 console.warn(`Assign failed: WIP Limit for 'In Progress' (${state.wipLimits.inprogress}) reached.`);
-                 alert(`WIP Limit Reached: Cannot move ${story.title} to 'In Progress' (Limit: ${state.wipLimits.inprogress}).`);
-                 return false;
-             }
-             targetStatus = 'inprogress';
-             requiresStatusChange = true;
-         } else if (story.status === 'inprogress') {
-             // Assigning another Dev to 'inprogress' story. No WIP check needed for adding more devs here.
-         } else {
-             console.warn(`Assign failed: Dev ${worker.name} cannot be assigned to story ${story.title} in status ${story.status}.`);
-             return false;
-         }
+    } else { // Assigning a Tester
+        if (story.status === 'inprogress' && story.subStatus === 'done') {
+             targetStatus = 'testing'; targetSubStatus = 'doing'; requiresStateChange = true; wipCheckNeeded = 'testing';
+        } else if (story.status === 'testing' && story.subStatus === 'doing') {
+            // Adding another Tester to Testing-Doing (no state change, no WIP check needed for this action)
+        } else {
+            console.warn(`Assign failed: Tester ${worker.name} cannot work on story ${story.title} in state ${story.status}/${story.subStatus}.`); return false;
+        }
     }
 
-    // Perform Assignment
+    // --- Perform WIP Limit Check (if required) ---
+    if (wipCheckNeeded) {
+        const limit = state.wipLimits[wipCheckNeeded];
+        const currentCount = state.currentWip[wipCheckNeeded]; // Current count in 'doing'
+        if (currentCount >= limit) {
+            const statusName = wipCheckNeeded === 'inprogress' ? 'In Progress (Doing)' : 'Testing (Doing)';
+             console.warn(`Assign failed: WIP Limit for '${statusName}' (${limit}) reached.`);
+             alert(`WIP Limit Reached: Cannot move story to '${statusName}' (Limit: ${limit}). Start finishing work!`);
+             return false;
+        }
+         console.log(`WIP Check Passed for moving into ${wipCheckNeeded}-doing: (${currentCount}/${limit})`);
+    }
+
+    // --- Perform Assignment & State Change ---
     worker.assignedStory = storyId;
     story.assignedWorkers.push(workerId);
-    worker.isUnblocking = false; // Ensure reset
+    worker.isUnblocking = false;
 
-    console.log(`Worker ${worker.name} assigned to story ${story.title}. Current assignees: ${story.assignedWorkers.join(', ')}`);
+    console.log(`Worker ${worker.name} assigned to story ${story.title}. Current assignees: [${story.assignedWorkers.join(', ')}]`);
 
-    // Update status if needed (this also updates WIP counts)
-    if (requiresStatusChange) {
-        updateStoryStatus(storyId, targetStatus);
-    } else {
-        updateWipCount(); // Ensure WIP count is fresh if status didn't change (e.g., adding 2nd tester)
+    if (requiresStateChange) {
+        setStoryState(storyId, targetStatus, targetSubStatus); // Handles WIP count update
     }
+    // No else needed for WIP count, as setStoryState handles it.
 
     return true;
 }
@@ -341,126 +355,131 @@ export function unassignWorkerFromStory(storyId, workerId) {
      const story = state.stories[storyId];
      const worker = state.team.find(w => w.id === workerId);
 
-     if (!story || !worker) { console.error(`Unassign failed: Story ${storyId} or Worker ${workerId} not found.`); return; }
-     if (!story.assignedWorkers.includes(workerId)) { console.warn(`Unassign failed: Worker ${workerId} not assigned to story ${storyId}.`); return; }
+     if (!story || !worker) { console.error(`Unassign failed: Story ${storyId} or Worker ${workerId} not found.`); return false; } // Return boolean
+     if (!story.assignedWorkers.includes(workerId)) {
+         // This can happen if the story state changed and auto-unassigned the worker already
+         console.warn(`Unassign skipped: Worker ${workerId} not found assigned to story ${storyId}. Current assignees: [${story.assignedWorkers.join(', ')}]`);
+         // Ensure worker state is clean if this happens
+         if (worker.assignedStory === storyId) worker.assignedStory = null;
+         return false; // Indicate unassignment didn't happen *now*
+     }
 
      const workerName = worker.name;
-     console.log(`Unassigning worker ${workerName} from story ${story.title}`);
+     console.log(`Unassigning worker ${workerName} (${workerId}) from story ${story.title} (${storyId})`);
 
      // Remove worker from story
      story.assignedWorkers = story.assignedWorkers.filter(id => id !== workerId);
      // Clear worker's assignment
      worker.assignedStory = null;
-     worker.isUnblocking = false; // Ensure reset
+     worker.isUnblocking = false; // Should already be false, but reset just in case
 
-     // If last worker removed from 'inprogress', move back to 'ready'
-     if (story.status === 'inprogress' && story.assignedWorkers.length === 0 && !story.isBlocked) {
-         console.log(`Last worker removed from In Progress story ${storyId}. Moving back to Ready.`);
-         updateStoryStatus(storyId, 'ready'); // Handles WIP update
+     // Check if state needs to revert if last worker removed from a 'doing' state
+     if (story.status === 'inprogress' && story.subStatus === 'doing' && story.assignedWorkers.length === 0 && !story.isBlocked) {
+         console.log(`Last worker removed from In Progress (Doing) story ${storyId}. Moving back to Ready.`);
+         setStoryState(storyId, 'ready', null);
+     } else if (story.status === 'testing' && story.subStatus === 'doing' && story.assignedWorkers.length === 0 && !story.isBlocked) {
+          console.log(`Last worker removed from Testing (Doing) story ${storyId}. Moving back to In Progress (Done).`);
+         setStoryState(storyId, 'inprogress', 'done');
+     } else {
+          // If state didn't change, no WIP count update needed here (setStoryState handles it)
      }
-     // If last worker removed from 'testing', move back to 'inprogress' (if dev effort > 0) or 'ready' (if dev effort was 0?)
-     // -> This scenario shouldn't happen. Testing work should complete, then testers unassigned, then status -> Done.
-     // -> A tester being unassigned before completion is odd. Let's assume it stays in Testing for now.
-     else {
-         // Update WIP count even if status doesn't change (e.g., removing 1 of 2 testers)
-         updateWipCount();
-     }
+     return true; // Indicate successful unassignment
 }
 
+// Assigns a senior dev to unblock a story (only 'doing' states can be unblocked)
 export function assignSeniorToUnblock(workerId, storyId) {
-    // ... (logic remains the same - unblocking is a separate state)
     const worker = state.team.find(w => w.id === workerId);
     const story = state.stories[storyId];
 
     if (!worker || !story) { console.error(`Unblock assign failed: Worker/Story not found.`); return false; }
     if (worker.skill !== 'Senior' || worker.area === 'Testing') { alert(`Only Senior Developers (Text/Visual) can unblock stories.`); return false; }
     if (!worker.available) { alert(`Worker ${worker.name} is not available to unblock.`); return false; }
-    // Check if already assigned to another task OR currently assigned to unblock THIS story
-    if (worker.assignedStory && worker.assignedStory !== storyId) { alert(`Worker ${worker.name} is already assigned to another task.`); return false; }
+    if (worker.assignedStory) { alert(`Worker ${worker.name} is already assigned to another task: ${worker.assignedStory}.`); return false; }
     if (!story.isBlocked) { alert(`Story ${story.title} is not currently blocked.`); return false; }
+    // Can only unblock stories that are actively being worked on ('doing')
+    if (!((story.status === 'inprogress' && story.subStatus === 'doing') || (story.status === 'testing' && story.subStatus === 'doing'))) {
+        alert(`Cannot unblock story ${story.title} in state ${story.status}/${story.subStatus}. Must be in a 'Doing' state.`); return false;
+    }
     if (worker.dailyPointsLeft < UNBLOCKING_COST) { alert(`Worker ${worker.name} requires ${UNBLOCKING_COST} point(s) to unblock, but only has ${worker.dailyPointsLeft}.`); return false; }
 
-    // Unassign any previous unblocker (if a different worker was assigned to unblock this story)
-    state.team.forEach(w => { if (w.isUnblocking && w.assignedStory === storyId && w.id !== workerId) { w.isUnblocking = false; w.assignedStory = null; } });
+    // Unassign any previous unblocker (safety check)
+    state.team.forEach(w => { if (w.isUnblocking && w.assignedStory === storyId) { w.isUnblocking = false; w.assignedStory = null; } });
 
-    // If worker was previously working on this now-blocked story, remove from assignedWorkers list
-     story.assignedWorkers = story.assignedWorkers.filter(id => id !== workerId);
-
-    worker.assignedStory = storyId; // Assign story for reference
+    // Mark worker as unblocking this story
+    worker.assignedStory = storyId; // References the story being unblocked
     worker.isUnblocking = true;
     worker.dailyPointsLeft -= UNBLOCKING_COST;
     story.isBlocked = false;
-    story.daysInState = 0; // Reset age
+    story.daysInState = 0; // Reset age now that it's active again
 
     console.log(`Worker ${worker.name} assigned to UNBLOCK story ${story.title}. Points remaining: ${worker.dailyPointsLeft}. Story unblocked.`);
+    updateWipCount(); // Ensure WIP is correct
     return true;
 }
 
 
-// Applies work from a specific worker to a story
+// Applies work from a specific worker to a story (only affects 'doing' sub-states)
 export function applyWorkToStory(storyId, points, workerId) {
     const story = state.stories[storyId];
-    const worker = getWorkerById(workerId); // Get worker info
+    const worker = getWorkerById(workerId);
 
-    if (!story || !worker || story.isBlocked) {
-        if (story?.isBlocked) console.warn(`Work blocked on story ${storyId}.`);
-        return { workApplied: 0, storyCompleted: false }; // Return object
-    }
+    if (!story || !worker) return { workApplied: 0, storyCompleted: false };
+    if (story.isBlocked) { console.warn(`Work blocked on story ${storyId}.`); return { workApplied: 0, storyCompleted: false }; }
+    if (story.status === 'done') return { workApplied: 0, storyCompleted: false };
 
-    const workerArea = worker.area; // Use the specific worker's area
+    const workerArea = worker.area;
     let pointsActuallyApplied = 0;
-    let storyCompleted = false;
+    let storyMovedToFinalDone = false;
 
-    if (workerArea !== 'Testing' && story.status === 'inprogress' && story.remainingEffort > 0) {
-        // Dev Work
+    // Dev Work (only on inprogress-doing)
+    if (workerArea !== 'Testing' && story.status === 'inprogress' && story.subStatus === 'doing' && story.remainingEffort > 0) {
         pointsActuallyApplied = Math.min(points, story.remainingEffort);
         story.remainingEffort -= pointsActuallyApplied;
         story.progress = ((story.baseEffort - story.remainingEffort) / story.baseEffort) * 100;
         console.log(`DEV by ${worker.name}: Applied ${pointsActuallyApplied} points to ${storyId}. Dev Remaining: ${story.remainingEffort}`);
 
         if (story.remainingEffort <= 0) {
-            console.log(`DEV Complete for ${storyId}. Moving to Testing.`);
-            // Find and unassign ALL Dev workers on this story
-            const devWorkers = [...story.assignedWorkers].filter(id => getWorkerById(id)?.area !== 'Testing'); // Create copy for iteration
-            devWorkers.forEach(devId => unassignWorkerFromStory(storyId, devId)); // Unassign specific devs
-            updateStoryStatus(storyId, 'testing'); // Change status AFTER unassigning devs
-            // Story is not *fully* done yet
+            console.log(`DEV Complete for ${storyId}. Moving to In Progress (Done).`);
+            setStoryState(storyId, 'inprogress', 'done'); // Handles unassigning Devs & WIP update
         }
-    } else if (workerArea === 'Testing' && story.status === 'testing' && story.testingEffortRemaining > 0) {
-        // Testing Work
+    }
+    // Testing Work (only on testing-doing)
+    else if (workerArea === 'Testing' && story.status === 'testing' && story.subStatus === 'doing' && story.testingEffortRemaining > 0) {
         pointsActuallyApplied = Math.min(points, story.testingEffortRemaining);
         story.testingEffortRemaining -= pointsActuallyApplied;
         story.testingProgress = ((TESTING_EFFORT_PER_STORY - story.testingEffortRemaining) / TESTING_EFFORT_PER_STORY) * 100;
         console.log(`TEST by ${worker.name}: Applied ${pointsActuallyApplied} points to ${storyId}. Test Remaining: ${story.testingEffortRemaining}`);
 
         if (story.testingEffortRemaining <= 0) {
-            console.log(`TEST Complete for ${storyId}. Marking as Done.`);
-            // Find and unassign ALL Test workers on this story (should only be testers here)
-            const testWorkers = [...story.assignedWorkers].filter(id => getWorkerById(id)?.area === 'Testing'); // Create copy
-            testWorkers.forEach(testId => unassignWorkerFromStory(storyId, testId)); // Unassign specific testers
-            markStoryAsDone(storyId); // Change status AFTER unassigning testers
-            storyCompleted = true; // Story is fully DONE
+            console.log(`TEST Complete for ${storyId}. Moving to Testing (Done), then attempting Final Done.`);
+            // Move to testing-done first (unassigns Testers, updates WIP)
+             setStoryState(storyId, 'testing', 'done');
+             // Now try to move to final Done
+             markStoryAsDone(storyId); // Attempt final transition
+             storyMovedToFinalDone = (story.status === 'done'); // Check if it actually moved
         }
+    } else {
+         // Log why work wasn't applied if worker is assigned but state doesn't match
+         if (worker.assignedStory === storyId) {
+             console.log(`Work not applied: Worker ${worker.name} (${workerArea}) assigned to ${storyId}, but story state is ${story.status}/${story.subStatus}.`);
+         }
     }
 
-    return { workApplied: pointsActuallyApplied, storyCompleted: storyCompleted }; // Return amount applied and completion status
+    return { workApplied: pointsActuallyApplied, storyCompleted: storyMovedToFinalDone };
 }
 
 
+// Moves story from 'testing-done' to final 'done' state
 function markStoryAsDone(storyId) {
     const story = state.stories[storyId];
-    if (story && story.status !== 'done') {
-        console.log(`Marking story ${storyId} as DONE!`);
-        // Ensure all workers are unassigned (should happen before calling this)
-        if (story.assignedWorkers && story.assignedWorkers.length > 0) {
-             console.warn(`Story ${storyId} marked as done, but workers [${story.assignedWorkers.join(', ')}] still assigned. Unassigning now.`);
-              [...story.assignedWorkers].forEach(workerId => unassignWorkerFromStory(story.id, workerId));
-        }
-        story.completedTimestamp = state.currentDay;
-        updateStoryStatus(storyId, 'done'); // This updates WIP
-
-        if (!state.currentSprintCompleted.includes(storyId)) state.currentSprintCompleted.push(storyId);
-        if (!state.completedStories.includes(storyId)) state.completedStories.push(storyId);
+    // Only transition from testing-done to done
+    if (story && story.status === 'testing' && story.subStatus === 'done') {
+        console.log(`Marking story ${storyId} as DONE (Final)!`);
+        setStoryState(storyId, 'done', null); // Handles timestamps, completed lists, WIP
+    } else if (story && story.status === 'done') {
+        // Already done
+    } else if (story) {
+        console.warn(`markStoryAsDone called for story ${storyId} but its state is ${story.status}/${story.subStatus}, not 'testing/done'.`);
     }
 }
 
@@ -469,27 +488,36 @@ export function advanceDay() {
     const currentPhase = getPhaseName(state.currentDay);
     console.log(`--- Advancing to Day Index ${state.currentDay} (${currentPhase}) ---`);
 
-    // Increment WIP Aging & potentially clear blockers based on phase logic
+    // Increment WIP Aging for all non-blocked, non-final states
     Object.values(state.stories).forEach(story => {
-        if ((story.status === 'inprogress' || story.status === 'testing') && !story.isBlocked) {
+        if (story.status !== 'backlog' && story.status !== 'ready' && story.status !== 'done' && !story.isBlocked) {
             story.daysInState++;
         }
-         // Clear blocker status at start of day if NOT in a work phase (cleared by unblocker action during reassignment)
-         if (![2, 4, 6, 8, 10].includes(state.currentDay)) {
-              //story.isBlocked = false; // Let unblocking handle this explicitly
-         }
     });
+
+    // Auto-move from testing-done to done at the START of any phase
+    // This ensures completed items don't wait unnecessarily if review isn't immediate
+    Object.values(state.stories).forEach(story => {
+        if (story.status === 'testing' && story.subStatus === 'done') {
+            console.log(`Auto-moving story ${story.id} from Testing(Done) to Final Done.`);
+            markStoryAsDone(story.id);
+        }
+    });
+
 
     // Reset workers at start of Assignment/Reassignment phases
     if (currentPhase.includes('Assign') || currentPhase.includes('Reassign')) {
         console.log(`Resetting worker points/availability for ${currentPhase}.`);
         state.team.forEach(w => {
             w.dailyPointsLeft = w.pointsPerDay;
-            w.available = true; // Default to available
-
-            // Reset unblocking status unless they are actively assigned to unblock *now*
-            // (assignSeniorToUnblock sets isUnblocking=true)
-             // w.isUnblocking = false; // Let the assignment logic manage this
+            w.available = true;
+            // If worker was unblocking, they become available but keep reference to the story
+            // The reassignment modal logic will handle if they get reassigned or stay idle
+             if (w.isUnblocking) {
+                 console.log(`Worker ${w.name} finished unblocking story ${w.assignedStory}. Now available.`);
+                 w.isUnblocking = false;
+                 // Keep assignedStory reference to potentially show in UI, but they are available
+             }
 
             // Apply persistent obstacles
             const obstacle = state.obstacles.find(o => o.targetWorkerId === w.id && o.type === 'capacity_reduction' && o.duration > 0);
@@ -499,25 +527,15 @@ export function advanceDay() {
                  console.log(`Obstacle persists for ${w.name}, points: ${w.dailyPointsLeft}, duration left: ${obstacle.duration}`);
                  if (obstacle.makesUnavailable) {
                      w.available = false;
-                     // If they become unavailable, unassign them from any current task
                      if (w.assignedStory) {
-                         console.log(`Worker ${w.name} made unavailable by obstacle, unassigning from ${w.assignedStory}`);
-                         unassignWorkerFromStory(w.assignedStory, w.id);
+                         console.log(`Worker ${w.name} made unavailable by obstacle, attempting to unassign from story ${w.assignedStory}`);
+                         unassignWorkerFromStory(w.assignedStory, w.id); // Attempt graceful unassignment
+                         // If unassign fails (e.g., already unassigned), just clear local ref
+                         if (w.assignedStory) w.assignedStory = null;
                      }
                      w.isUnblocking = false; // Cannot unblock if unavailable
                  }
-            } else {
-                 // If no obstacle, ensure they are marked available
-                 w.available = true;
             }
-
-             // If worker is assigned to a story that IS currently blocked, mark worker as unavailable for *new* assignments
-             // but they remain 'assigned' conceptually until reassigned/unblocked
-             const assignedStory = w.assignedStory ? getStory(w.assignedStory) : null;
-             if(assignedStory && assignedStory.isBlocked && !w.isUnblocking) {
-                 // Don't mark unavailable here, let the UI show 'Blocked' status
-                 // worker.available = false; // This prevents them appearing in dropdowns
-             }
         });
         // Clean up expired obstacles
         state.obstacles = state.obstacles.filter(o => o.duration === undefined || o.duration > 0);
@@ -526,17 +544,16 @@ export function advanceDay() {
 
 
 export function startNewSprint() {
-    // ... (Logic remains similar, ensure assignedWorkers reset)
     const completedPoints = state.currentSprintCompleted
-        .map(id => state.stories[id]?.baseEffort || 0)
+        .map(id => state.stories[id]?.baseEffort || 0) // Use base effort for velocity
         .reduce((sum, points) => sum + points, 0);
     state.velocityHistory.push(completedPoints);
     state.currentSprint++;
     state.currentDay = 0;
-    state.sprintBacklog = [];
+    state.sprintBacklog = []; // Clear committed list
     state.currentSprintCompleted = [];
-    state.obstacles = []; // Clear obstacles for new sprint
-    state.team.forEach(w => {
+    state.obstacles = [];
+    state.team.forEach(w => { // Reset workers
         w.available = true;
         w.assignedStory = null;
         w.isUnblocking = false;
@@ -545,27 +562,28 @@ export function startNewSprint() {
     Object.values(state.stories).forEach(story => {
         // Reset any story not 'done' or already in 'backlog'
         if (story.status !== 'done' && story.status !== 'backlog') {
-            console.log(`Moving unfinished story ${story.title} (Status: ${story.status}) back to Product Backlog.`);
-             // Unassign workers first
+            console.log(`Moving unfinished story ${story.title} (State: ${story.status}/${story.subStatus}) back to Product Backlog.`);
              if (story.assignedWorkers && story.assignedWorkers.length > 0) {
                  [...story.assignedWorkers].forEach(workerId => unassignWorkerFromStory(story.id, workerId));
              }
-            story.status = 'backlog';
-            story.remainingEffort = story.baseEffort; // Reset effort
-            story.testingEffortRemaining = TESTING_EFFORT_PER_STORY; // Reset testing
+             // Reset story fields
+            const originalBaseEffort = story.baseEffort;
+            story.chosenImplementation = null;
+            story.remainingEffort = originalBaseEffort;
+            story.testingEffortRemaining = TESTING_EFFORT_PER_STORY;
             story.progress = 0;
             story.testingProgress = 0;
-            story.assignedWorkers = []; // Reset array
+            story.assignedWorkers = [];
             story.isBlocked = false;
             story.daysInState = 0;
             story.enteredInProgressTimestamp = null;
             story.completedTimestamp = null;
-            // Add back to product backlog if not already there
+            setStoryState(story.id, 'backlog', null);
             if (!state.productBacklog.includes(story.id)) {
-                state.productBacklog.unshift(story.id); // Add to top
+                state.productBacklog.unshift(story.id);
             }
         } else if (story.status === 'done') {
-            story.daysInState = 0; // Reset age for done items too
+            story.daysInState = 0;
         }
     });
     updateWipCount(); // Reset WIP count
@@ -575,7 +593,7 @@ export function startNewSprint() {
 
 export function calculateTeamCapacity() {
     const pointsPerDay = state.team.reduce((sum, worker) => sum + worker.pointsPerDay, 0);
-    const workDays = 5; // 5 work days per sprint
+    const workDays = 5;
     state.teamCapacity = pointsPerDay * workDays;
 }
 
@@ -587,10 +605,10 @@ export function setStoryImplementation(storyId, choice) {
      if (state.stories[storyId]) {
         const story = state.stories[storyId];
         story.chosenImplementation = choice;
-        // Update effort only if it changes, reset progress
         if (story.baseEffort !== choice.effort) {
              story.remainingEffort = choice.effort;
-             story.baseEffort = choice.effort;
+             // Don't change baseEffort, keep original for reference/velocity if needed
+             // story.baseEffort = choice.effort;
              story.progress = 0;
              console.log(`Implementation changed effort for ${storyId}. Effort reset to ${choice.effort}`);
         }
@@ -604,37 +622,34 @@ export function useWorkerPoints(workerId, pointsUsed) {
          const pointsActuallyUsed = Math.min(pointsUsed, worker.dailyPointsLeft);
          if (pointsActuallyUsed > 0) {
              worker.dailyPointsLeft -= pointsActuallyUsed;
-             console.log(`Points used by ${worker.name}: ${pointsActuallyUsed}. Remaining today: ${worker.dailyPointsLeft}`);
+             // console.log(`Points used by ${worker.name}: ${pointsActuallyUsed}. Remaining today: ${worker.dailyPointsLeft}`); // Reduce log noise
          }
      }
 }
 
 export function addObstacle(obstacle) {
-    const obstacleWithDuration = { ...obstacle, id: `obs-${Date.now()}-${Math.random()}`, duration: 1 }; // Default 1 day duration for capacity reduction
+    const obstacleWithDuration = { ...obstacle, id: `obs-${Date.now()}-${Math.random()}`, duration: 1 };
     state.obstacles.push(obstacleWithDuration);
 
-    // Immediate effect for blockers
+    // Immediate effect for blockers (block 'doing' states)
      if (obstacle.type === 'blocker') {
          const story = state.stories[obstacle.targetStoryId];
-         if(story && (story.status === 'inprogress' || story.status === 'testing') && !story.isBlocked) {
+         const isDoingState = (story?.status === 'inprogress' && story?.subStatus === 'doing') || (story?.status === 'testing' && story?.subStatus === 'doing');
+         if(story && isDoingState && !story.isBlocked) {
              story.isBlocked = true;
              story.daysInState = 0; // Reset age when blocked
              console.log(`Obstacle Applied: ${obstacle.message} blocking story ${story.title}`);
-             // Workers assigned remain assigned but cannot work (handled in simulation)
              if (story.assignedWorkers.length > 0) {
                  console.log(`Story ${story.title} blocked. Assigned workers [${story.assignedWorkers.join(', ')}] cannot progress.`);
-                 // Optionally mark workers as unavailable if needed, but UI state should reflect 'Blocked'
              }
-         } else if (story) { console.log(`Obstacle Skipped: Blocker targeting story ${story.title} in status ${story.status} or already blocked.`); }
+         } else if (story) { console.log(`Obstacle Skipped: Blocker targeting story ${story.title} in state ${story.status}/${story.subStatus} or already blocked.`); }
          else { console.warn(`Obstacle Skipped: Blocker target story ${obstacle.targetStoryId} not found.`); }
      }
-    // Capacity reductions are applied at the start of the next (re)assignment phase in advanceDay()
+    // Capacity reductions applied at start of next (re)assignment phase in advanceDay()
      else if (obstacle.type === 'capacity_reduction') {
         const worker = state.team.find(w => w.id === obstacle.targetWorkerId);
         if (worker) {
              console.log(`Obstacle Added: ${obstacle.message} targeting ${worker.name}. Effect applied at start of next (re)assignment phase.`);
-             // Immediate unavailability can be handled here if needed, but current logic waits for advanceDay
-             // if (obstacle.makesUnavailable) { worker.available = false; }
         } else { console.warn(`Obstacle Skipped: Capacity reduction target worker ${obstacle.targetWorkerId} not found.`); }
      }
 }
@@ -652,7 +667,7 @@ export function checkDoDMet() {
     const definition = dodDefinitions[state.chosenDoD];
     if (!definition) { console.error(`Definition not found for chosen DoD: ${state.chosenDoD}`); state.dodMet = false; return false; }
     const requiredIds = definition.requiredStoryIds;
-    const completedIds = new Set(state.completedStories);
+    const completedIds = new Set(state.completedStories.map(id => state.stories[id].id));
     state.missingDodStories = [];
     let allRequiredMet = true;
     requiredIds.forEach(reqId => { if (!completedIds.has(reqId)) { allRequiredMet = false; state.missingDodStories.push(reqId); } });
@@ -683,31 +698,34 @@ export function getPhaseName(dayNumber) {
 export function calculateAverageCycleTime() {
     const completedThisSprint = getCurrentSprintCompletedStories();
     if (completedThisSprint.length === 0) { return null; }
-    let totalCycleTimeDays = 0; let validStoriesCount = 0;
+
+    let totalCycleTimeDays = 0;
+    let validStoriesCount = 0;
+
     completedThisSprint.forEach(story => {
-        // enteredInProgressTimestamp is the *start* of the day index (e.g., 1 for start of Day 1 assignment)
-        // completedTimestamp is the *end* of the day index (e.g., 2 for end of Day 1 work)
-        // Cycle time = (completedTimestamp - enteredInProgressTimestamp) + 1 (inclusive of start/end days)
-        // Note: Adjusting based on 0-11 index. Day 1 Assign=1, Work=2. Day 5 Assign=9, Work=10.
         if (typeof story.enteredInProgressTimestamp === 'number' && typeof story.completedTimestamp === 'number' &&
-            story.enteredInProgressTimestamp >= 1 && // Must have started (at least Day 1 Assign phase)
+            story.enteredInProgressTimestamp >= 1 &&
             story.completedTimestamp >= story.enteredInProgressTimestamp)
         {
-            // Calculate the number of *work phases* included.
-            // Example: Start Day 1 (index 1), Finish Day 1 (index 2) -> Cycle = 1 work phase (Day 1 Work)
-            // Example: Start Day 1 (index 1), Finish Day 2 (index 4) -> Cycle = 2 work phases (Day 1 Work, Day 2 Work)
-            // Formula: floor(completionIndex / 2) - floor((startIndex - 1) / 2)
-            const startWorkPhase = Math.ceil(story.enteredInProgressTimestamp / 2); // Work phase corresponding to start index
-            const endWorkPhase = Math.ceil(story.completedTimestamp / 2); // Work phase corresponding to end index
+            // enteredInProgressTimestamp = index of start of Assign/Reassign phase *before* first work
+            // completedTimestamp = index of end of Work phase where story reached final 'done'
+            const startWorkPhase = Math.ceil(story.enteredInProgressTimestamp / 2);
+            const endWorkPhase = Math.ceil(story.completedTimestamp / 2);
             const cycleWorkPhases = endWorkPhase - startWorkPhase + 1;
 
-            totalCycleTimeDays += cycleWorkPhases;
-            validStoriesCount++;
-            console.log(`Cycle Time for ${story.id}: Start Index ${story.enteredInProgressTimestamp} (Work Phase ${startWorkPhase}), End Index ${story.completedTimestamp} (Work Phase ${endWorkPhase}), Work Phases: ${cycleWorkPhases}`);
-        } else { console.warn(`Invalid cycle time data for story ${story.id}: Start=${story.enteredInProgressTimestamp}, End=${story.completedTimestamp}`); }
+            if (cycleWorkPhases > 0) {
+                totalCycleTimeDays += cycleWorkPhases;
+                validStoriesCount++;
+                // console.log(`Cycle Time for ${story.id}: Start Index ${story.enteredInProgressTimestamp} (Work Phase ${startWorkPhase}), End Index ${story.completedTimestamp} (Work Phase ${endWorkPhase}), Work Phases: ${cycleWorkPhases}`); // Reduce log noise
+            } else {
+                console.warn(`Invalid calculated cycle time (<= 0) for story ${story.id}: StartIndex=${story.enteredInProgressTimestamp}, EndIndex=${story.completedTimestamp}, CalculatedPhases=${cycleWorkPhases}`);
+            }
+        } else {
+            console.warn(`Invalid or missing cycle time data for story ${story.id}: Start=${story.enteredInProgressTimestamp}, End=${story.completedTimestamp}`);
+        }
     });
+
     if (validStoriesCount === 0) return null;
-    // Return average number of *work days* (phases)
     return (totalCycleTimeDays / validStoriesCount).toFixed(1);
 }
 // --- END OF FILE gameState.js ---
