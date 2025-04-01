@@ -11,8 +11,8 @@ const planningModal = document.getElementById('sprint-planning-modal');
 const commitSprintBtn = document.getElementById('commit-sprint-btn');
 const assignmentModal = document.getElementById('worker-assignment-modal');
 const confirmAssignmentsBtn = document.getElementById('confirm-assignments-btn');
-const dailyScrumModal = document.getElementById('daily-scrum-modal'); // Now used for Reassignment
-const confirmReassignmentsBtn = document.getElementById('confirm-reassignments-btn'); // NEW Button in Daily Scrum Modal
+const dailyScrumModal = document.getElementById('daily-scrum-modal'); // Now used for Reassignment & Blockers
+const confirmReassignmentsBtn = document.getElementById('confirm-reassignments-btn'); // Button in Daily Scrum Modal
 const reviewModal = document.getElementById('sprint-review-modal');
 const startRetroBtn = document.getElementById('start-retro-btn');
 const retroModal = document.getElementById('sprint-retrospective-modal');
@@ -31,7 +31,7 @@ const dodForm = document.getElementById('dod-form');
 
 // --- Initialization ---
 function initGame() {
-    console.log("Initializing Game (Testing & Reassignment Flow)...");
+    console.log("Initializing Game (WIP Limits, Aging, Blockers)...");
     GameState.loadInitialState(initialProductBacklog); // Load state (resets DoD)
     UI.renderWorkers(GameState.getTeam()); // Render workers early
     Kanban.initializeKanbanBoards(null); // Initialize Kanban display (drag disabled)
@@ -54,7 +54,7 @@ function setupEventListeners() {
     openLearningBtn.addEventListener('click', () => UI.showModal(learningModal));
     commitSprintBtn.addEventListener('click', Simulation.commitToSprint); // Planning Modal
     confirmAssignmentsBtn.addEventListener('click', Simulation.confirmWorkerAssignments); // Assignment Modal (Day 1)
-    confirmReassignmentsBtn.addEventListener('click', Simulation.confirmReassignments); // Daily Scrum/Reassignment Modal (Day 2)
+    confirmReassignmentsBtn.addEventListener('click', Simulation.confirmReassignments); // Daily Scrum/Reassignment Modal (Day 2 + Blockers)
     startRetroBtn.addEventListener('click', Simulation.startRetrospective); // Review Modal
     retroForm.addEventListener('submit', handleRetroSubmit); // Retro Modal
     playAgainBtn.addEventListener('click', () => {
@@ -72,15 +72,23 @@ function setupEventListeners() {
             if (modal) UI.closeModal(modal);
         });
     });
+
     console.log(">>> Event listeners setup complete.");
 }
 
 // --- Event Handlers ---
 function handleRetroSubmit(event) {
     event.preventDefault();
-    const well = document.getElementById('retro-well').value;
-    const improve = document.getElementById('retro-improve').value;
-    const change = document.getElementById('retro-change').value;
+    // Get values from text areas now
+    const well = document.getElementById('retro-well').value.trim();
+    const improve = document.getElementById('retro-improve').value.trim();
+    const change = document.getElementById('retro-change').value.trim();
+
+    if (!well || !improve || !change) {
+        alert("Please fill out all sections of the retrospective.");
+        return;
+    }
+
     console.log("Retrospective:", { well, improve, change });
     GameState.recordRetrospective(well, improve, change);
     UI.closeModal(retroModal);

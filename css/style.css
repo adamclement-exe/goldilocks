@@ -135,12 +135,18 @@ header h1 {
     padding: 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    align-self: flex-start;
+    align-self: flex-start; /* Keep team status aligned to top */
+    max-height: calc(100vh - 150px); /* Example max height */
+    overflow-y: auto; /* Allow scrolling if team is large */
 }
 #team-status h2 {
     font-size: 1.2em;
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
+    position: sticky; /* Keep header visible */
+    top: 0;
+    background-color: #ffffff; /* Ensure background */
+    z-index: 1; /* Keep above scrolling content */
 }
 
 
@@ -168,6 +174,26 @@ header h1 {
     color: #34495e;
 }
 
+/* WIP Limit Styling */
+.wip-limit {
+    font-size: 0.85em;
+    font-weight: normal;
+    color: #555;
+    margin-left: 5px; /* Space after title */
+    display: inline-block; /* Keep on same line */
+    background-color: #ecf0f1; /* Subtle background */
+    padding: 1px 6px;
+    border-radius: 8px;
+    border: 1px solid #bdc3c7;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+.wip-limit.exceeded {
+    color: white; /* White text on red */
+    font-weight: bold;
+    background-color: #e74c3c; /* Red background */
+    border-color: #c0392b; /* Darker red border */
+}
+
 
 .story-list {
     min-height: 150px;
@@ -176,6 +202,8 @@ header h1 {
     padding: 5px;
     flex-grow: 1;
     border: 1px dashed #ccc; /* Add border to lists */
+    max-height: calc(100vh - 250px); /* Prevent infinite growth */
+    overflow-y: auto; /* Allow scrolling within list */
 }
 
 /* Story Card Styling */
@@ -188,8 +216,24 @@ header h1 {
     cursor: default;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     font-size: 0.9em;
-    transition: border 0.2s ease; /* For blocked status */
+    transition: border-left-color 0.3s ease, box-shadow 0.3s ease; /* Add shadow/border transition */
+    position: relative; /* Needed for blocker info */
+    border-left-width: 4px; /* Add space for potential color indicator */
+    border-left-color: transparent; /* Default transparent */
 }
+
+/* Style for blocked stories using border */
+.story-card[data-blocked="true"] { /* Target blocked stories via data attribute */
+    border-left-color: orange !important; /* Use left border for blocker, !important if needed */
+    box-shadow: 0 2px 6px rgba(255, 165, 0, 0.3); /* Orange glow */
+}
+/* Style for aging stories */
+.story-card .story-age.aging { /* Target the span with aging class */
+    border: 1px solid #e74c3c;
+    background-color: #fbeeeE; /* Light red background for aging */
+    color: #c0392b; /* Darker red text */
+}
+
 
 .story-card h4 {
     margin-bottom: 4px;
@@ -203,13 +247,23 @@ header h1 {
     color: #777;
     display: flex;
     justify-content: space-between;
+    flex-wrap: wrap; /* Allow wrapping if needed */
     margin-bottom: 4px;
+    gap: 5px 10px; /* Add row and column gap between items */
 }
 .story-meta span span { /* Target the inner span for points/stars */
     font-weight: bold;
     color: #555;
 }
-
+/* WIP Aging Style */
+.story-age {
+    font-size: 0.8em;
+    color: #999;
+    background-color: #f0f0f0;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-style: italic;
+}
 
 .story-tags {
     margin-bottom: 4px;
@@ -252,6 +306,16 @@ header h1 {
     color: #555;
 }
 
+/* Blocker Info Styling */
+.blocker-info {
+    color: orange;
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-top: 4px;
+    display: none; /* Hidden by default, shown by JS */
+}
+
+
 /* Progress Bar Styling */
 .story-progress, .story-testing-progress {
     margin-top: 5px;
@@ -279,19 +343,23 @@ progress::-webkit-progress-bar {
 progress.dev-progress::-webkit-progress-value {
     background-color: #2ecc71; /* Green for dev */
     border-radius: 5px;
+    transition: width 0.3s ease;
 }
 progress.test-progress::-webkit-progress-value {
     background-color: #f39c12; /* Orange for testing */
     border-radius: 5px;
+     transition: width 0.3s ease;
 }
 /* Firefox specific */
 progress.dev-progress::-moz-progress-bar {
     background-color: #2ecc71;
     border-radius: 5px;
+     transition: width 0.3s ease;
 }
 progress.test-progress::-moz-progress-bar {
     background-color: #f39c12;
     border-radius: 5px;
+     transition: width 0.3s ease;
 }
 
 
@@ -320,12 +388,15 @@ progress.test-progress::-moz-progress-bar {
     margin-bottom: 5px;
     border-radius: 3px;
     font-size: 0.9em;
-    border-left: 3px solid #bdc3c7; /* Default border */
+    border-left: 4px solid #bdc3c7; /* Default border, slightly thicker */
     transition: border-color 0.3s ease;
 }
-.worker-status[data-state="idle"] { border-left-color: #2ecc71; }
-.worker-status[data-state="working"] { border-left-color: #3498db; }
-.worker-status[data-state="unavailable"] { border-left-color: #e74c3c; }
+/* Update border colors based on data-state attribute set by JS */
+.worker-status[data-state="idle"] { border-left-color: #2ecc71; } /* Green */
+.worker-status[data-state="working"] { border-left-color: #3498db; } /* Blue */
+.worker-status[data-state="unavailable"] { border-left-color: #e74c3c; } /* Red */
+.worker-status[data-state="unblocking"] { border-left-color: #f39c12; } /* Orange */
+.worker-status[data-state="blocked"] { border-left-color: #e74c3c; } /* Red (when assigned to blocked story) */
 
 .worker-avatar {
     display: inline-block;
@@ -336,29 +407,64 @@ progress.test-progress::-moz-progress-bar {
     vertical-align: middle;
     border: 1px solid #ccc;
 }
+/* Worker State Text Colors are now set by JS inline style based on state */
+
 
 /* Assignment Modal Item Spacing */
-.assignment-item, .reassignment-item {
+.assignment-item, .reassignment-item, .blocker-assignment-item {
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
 }
-.assignment-item label, .reassignment-item label {
+.assignment-item:last-child, .reassignment-item:last-child, .blocker-assignment-item:last-child {
+    border-bottom: none; /* Remove border from last item */
+}
+
+.assignment-item label, .reassignment-item label, .blocker-assignment-item label {
     margin-right: 5px;
     font-weight: 500;
 }
-.assignment-item select, .reassignment-item select {
+.assignment-item select, .reassignment-item select, .blocker-assignment-item select {
     padding: 4px 6px; /* Slightly more padding */
     margin-left: 5px;
     min-width: 180px; /* Wider dropdown */
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+/* Style disabled options */
+.assignment-item select option:disabled,
+.reassignment-item select option:disabled,
+.blocker-assignment-item select option:disabled {
+    color: #aaa;
+    background-color: #f8f8f8;
+}
+
 .reassignment-current {
     font-style: italic;
     color: #666;
     margin-left: 10px;
     font-size: 0.9em;
+}
+
+/* Retrospective Text Areas */
+#retro-form textarea {
+    width: 95%; /* Take most of modal width */
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 10px; /* Space below textarea */
+    font-family: inherit; /* Use body font */
+    font-size: 0.95em;
+    display: block; /* Ensure it takes full width */
+    margin-left: auto;
+    margin-right: auto;
+}
+#retro-form label {
+    display: block; /* Put label on its own line */
+    margin-bottom: 3px;
+    font-weight: 600;
+    margin-left: 2.5%; /* Align with textarea */
 }
 
 
@@ -372,6 +478,8 @@ progress.test-progress::-moz-progress-bar {
     display: flex;
     flex-wrap: wrap;
     gap: 15px; /* More gap */
+    max-height: 400px; /* Limit height in modals */
+    overflow-y: auto; /* Add scroll if needed */
 }
 
 .storybook-page-preview {
@@ -382,6 +490,10 @@ progress.test-progress::-moz-progress-bar {
     background-color: #fdfdfd;
     box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     border-radius: 4px;
+    display: flex; /* Use flexbox for vertical centering */
+    flex-direction: column;
+    justify-content: space-between; /* Space out content */
+    min-height: 180px; /* Give pages a min height */
 }
 
 .storybook-page-preview h5 {
@@ -395,11 +507,19 @@ progress.test-progress::-moz-progress-bar {
     height: auto;
     margin-bottom: 8px;
     border-radius: 3px;
+    object-fit: contain; /* Ensure image fits well */
+    max-height: 100px; /* Limit image height */
+    flex-shrink: 0; /* Prevent image shrinking */
 }
 
 .storybook-page-preview p {
     font-size: 0.85em; /* Slightly larger text */
     color: #444;
+    flex-grow: 1; /* Allow text to take remaining space */
+    margin-top: auto; /* Push text towards bottom if needed */
+    text-align: left; /* Align text left within preview */
+    hyphens: auto; /* Allow hyphenation */
+    word-break: break-word; /* Break long words */
 }
 
 /* DoD Status in Final Modal */
@@ -428,25 +548,30 @@ progress.test-progress::-moz-progress-bar {
         flex-direction: column;
     }
      .kanban-board-container {
-       flex-direction: row;
-       overflow-x: auto;
+       flex-direction: row; /* Keep row layout */
+       overflow-x: auto; /* Allow horizontal scroll for board */
+       padding-bottom: 10px; /* Add padding for scrollbar */
     }
     .kanban-column {
-        min-width: 200px;
+        min-width: 200px; /* Ensure columns have min width when scrolling */
+        max-width: 280px; /* Optional: Prevent columns from becoming too wide */
     }
      #team-status {
         min-width: unset;
         width: 100%;
+        max-height: 250px; /* Adjust height on smaller screens */
+    }
+    .story-list {
+         max-height: 300px; /* Adjust list height */
     }
 }
 
 @media (max-width: 768px) {
     .kanban-board-container {
-        flex-direction: column;
-        overflow-x: unset;
+        /* Keep horizontal scroll from previous breakpoint */
     }
     .kanban-column {
-        min-width: unset;
+        min-width: 180px; /* Slightly smaller min-width */
     }
     header {
         flex-direction: column;
@@ -454,4 +579,16 @@ progress.test-progress::-moz-progress-bar {
     }
     header h1 { text-align: center; }
     #sprint-info { text-align: center; margin-top: 10px; }
+    #team-status {
+         max-height: 200px; /* Further adjust height */
+    }
+    dialog {
+        min-width: 90%; /* Make modals wider on small screens */
+        max-width: 95%;
+    }
+     #retro-form textarea, #retro-form label {
+        width: 90%;
+        margin-left: 5%;
+        margin-right: 5%;
+     }
 }
