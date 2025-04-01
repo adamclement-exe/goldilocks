@@ -4,8 +4,6 @@ This is an educational browser-based simulation game designed to teach and demon
 
 Players take on the role of managing a small team over three Sprints to create pages for the Goldilocks storybook.
 
-![Gameplay Screenshot](images/screenshot-placeholder.png)
-*(Suggestion: Replace this placeholder with an actual screenshot of the game board)*
 
 ## Core Concepts Demonstrated
 
