@@ -1,11 +1,73 @@
-// Initial Product Backlog Data
-// Effort: 1-5 points
-// Value: 1-5 stars
-// implementationChoices: Optional array for procedural choices
-//   - description: Text shown to player
-//   - effort: Points for this choice
-//   - impact: Text describing the outcome (used in review/final book)
 
+const dodDefinitions = {
+  easy: {
+      level: 'easy',
+      name: 'Easy - Core Plot',
+      description: 'Complete the essential story beats: Goldilocks enters, tries porridge/chairs/beds, bears return, Goldilocks flees.',
+      bonusPoints: 50,
+      // IDs based on the provided stories.js (adjust if your IDs differ)
+      requiredStoryIds: [
+          'story-3', // Finds Cottage
+          'story-5', // Porridge Testing Scene (Text)
+          'story-7', // Chair Testing Scene (Text)
+          'story-9', // Bed Testing Scene (Text)
+          'story-11', // Bears Return Home (Text)
+          'story-12', // Bears Discover Mess (Text - List version okay)
+          'story-14', // Goldilocks Wakes Up & Flees (Text)
+          'story-15', // The End Page (Text)
+      ]
+  },
+  medium: {
+      level: 'medium',
+      name: 'Medium - Illustrated Story',
+      description: 'Complete the core plot with key illustrations and proper introduction/conclusion.',
+      bonusPoints: 100,
+      requiredStoryIds: [
+          'story-1', // Catchy Cover Page (Any implementation)
+          'story-2', // Introduce Goldilocks (Any implementation)
+          'story-3', // Finds Cottage (Any implementation)
+          'story-4', // Cottage Visual (Any implementation)
+          'story-5', // Porridge Testing Scene (Text)
+          'story-6', // Porridge Visual (Any implementation)
+          'story-7', // Chair Testing Scene (Text)
+          'story-8', // Broken Chair Visual (Any implementation)
+          'story-9', // Bed Testing Scene (Text)
+          'story-10', // Goldilocks Sleeping Visual (Any implementation)
+          'story-11', // Bears Return Home (Text)
+          'story-12', // Bears Discover Mess (Text)
+          'story-13', // Bears Discover Goldilocks Visual (Any implementation)
+          'story-14', // Goldilocks Wakes Up & Flees (Text)
+          'story-15', // The End Page (Any implementation)
+      ]
+  },
+  hard: {
+      level: 'hard',
+      name: 'Hard - Polished & Marketable',
+      description: 'Complete a rich story with detailed text, visuals, cover, and marketing elements.',
+      bonusPoints: 200,
+      requiredStoryIds: [
+          'story-1', // Catchy Cover Page (Any implementation)
+          'story-2', // Introduce Goldilocks (Detailed implementation preferred, but check ID only)
+          'story-3', // Finds Cottage (Detailed implementation preferred)
+          'story-4', // Cottage Visual (Colorful implementation preferred)
+          'story-5', // Porridge Testing Scene (Vivid description preferred)
+          'story-6', // Porridge Visual (Eating picture preferred)
+          'story-7', // Chair Testing Scene (Breaking chair description preferred)
+          'story-8', // Broken Chair Visual (Falling visual preferred)
+          'story-9', // Bed Testing Scene (Sleepiness description preferred)
+          'story-10', // Goldilocks Sleeping Visual (Peaceful picture preferred)
+          'story-11', // Bears Return Home (Dialogue preferred)
+          'story-12', // Bears Discover Mess (Full dialogue preferred)
+          'story-13', // Bears Discover Goldilocks Visual (Looming picture preferred)
+          'story-14', // Goldilocks Wakes Up & Flees (Fright description preferred)
+          'story-15', // The End Page (Moral preferred)
+          'story-16', // Back Cover Blurb (Any implementation)
+      ]
+      // Note: For 'Hard', we only check if the story ID is complete.
+      // We *could* add checks for specific implementation choices, but that adds complexity.
+      // The description guides the player towards better choices.
+  }
+};
 export const initialProductBacklog = [
     {
       title: "Catchy Cover Page",
