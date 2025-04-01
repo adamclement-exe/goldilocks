@@ -4,6 +4,7 @@ import * as GameState from './gameState.js';
 import { selectImageForStory } from './imageSelector.js';
 
 // --- DOM Element References ---
+// ... (keep all existing references) ...
 const productBacklogList = document.getElementById('product-backlog-list');
 const sprintBacklogList = document.getElementById('sprint-backlog-list');
 const inProgressList = document.getElementById('inprogress-list');
@@ -45,11 +46,11 @@ const bonusPointsMedium = document.querySelector('.bonus-points-medium');
 const bonusPointsHard = document.querySelector('.bonus-points-hard');
 const reviewCycleTimeDisplay = document.getElementById('review-cycle-time');
 const reviewDodProgressDisplay = document.getElementById('review-dod-progress');
-const unblockingCostDisplay = document.getElementById('unblocking-cost-display'); // Updated ID
+const unblockingCostDisplay = document.getElementById('unblocking-cost-display');
 
 
 // --- Rendering Functions ---
-
+// ... (keep createStoryCard, renderWorkers, renderStoryList, etc. exactly as they were) ...
 export function renderProductBacklog(backlogItems) { renderStoryList(productBacklogList, backlogItems); }
 export function renderSprintBacklog(sprintItems) { renderStoryList(sprintBacklogList, sprintItems); updateSprintPlanningUI(); }
 export function renderInProgress(inProgressItems) { renderStoryList(inProgressList, inProgressItems); }
@@ -350,13 +351,26 @@ export function renderAllColumns() {
 // --- Modal Handling ---
 export function showModal(modalElement) {
     if (modalElement && typeof modalElement.showModal === 'function') {
-        if (!modalElement.open) { modalElement.showModal(); }
-        else { console.log(`>>> UI.showModal: Modal ${modalElement.id} is already open.`); }
+        if (!modalElement.open) {
+             modalElement.showModal();
+             // *** FIX: Reset scroll position after showing ***
+             // Use setTimeout to ensure this runs after the browser's potential autofocus scroll
+             setTimeout(() => {
+                 modalElement.scrollTop = 0;
+             }, 0);
+        } else {
+             console.log(`>>> UI.showModal: Modal ${modalElement.id} is already open.`);
+             // Even if already open, reset scroll just in case
+              setTimeout(() => {
+                  modalElement.scrollTop = 0;
+             }, 0);
+        }
     } else { console.error(">>> UI.showModal Error: Invalid modal element or showModal not supported:", modalElement); }
 }
 export function closeModal(modalElement) { if (modalElement && typeof modalElement.close === 'function') { modalElement.close(); } }
 
 // --- Specific Modal Content Updates ---
+// ... (keep showDoDChoiceModal, populateSprintPlanningModal, updateSprintPlanningUI, showProceduralChoiceModal, etc. exactly as they were) ...
 
 export function showDoDChoiceModal() {
     if (!dodChoiceModal) return;
@@ -445,10 +459,12 @@ export function showProceduralChoiceModal(story) {
      } else { choiceOptionsContainer.innerHTML = '<p>No implementation choices available.</p>'; } showModal(modal);
 }
 
-// ** Populates Day 1 Assignment Modal (Checkboxes for MULTIPLE initial workers) **
+
 export function populateWorkerAssignmentModal(storiesToAssign, availableWorkers) {
     if (!assignmentListContainer) return;
-    assignmentListContainer.innerHTML = '';
+    assignmentListContainer.innerHTML = ''; // Clear previous content
+     // Remove previous listener to avoid duplicates
+     assignmentListContainer.removeEventListener('change', handleAssignmentCheckboxChange);
     updateWipDisplays(); // Ensure WIP info is current
 
     if (storiesToAssign.length === 0) {
@@ -456,8 +472,6 @@ export function populateWorkerAssignmentModal(storiesToAssign, availableWorkers)
         return;
     }
 
-    const wipLimits = GameState.getWipLimits();
-    const currentWip = GameState.getCurrentWip();
     // Keep track of workers assigned within this modal session to disable them elsewhere
     const workersAssignedInModal = new Set();
     // Keep track of stories that will potentially move to 'In Progress'
@@ -553,9 +567,9 @@ function updateAssignmentModalCheckboxes() {
     const currentWipInProgress = GameState.getCurrentWip().inprogress;
     const wipLimitInProgress = GameState.getWipLimits().inprogress;
     const projectedWip = currentWipInProgress + storiesWithAssignments.size;
-    const wipLimitReached = projectedWip >= wipLimitInProgress;
+    const wipLimitReached = projectedWip > wipLimitInProgress; // Check if strictly greater than limit
 
-    console.log(`Current WIP: ${currentWipInProgress}, Stories selected: ${storiesWithAssignments.size}, Projected WIP: ${projectedWip}, Limit: ${wipLimitInProgress}, Reached: ${wipLimitReached}`);
+    console.log(`Current WIP: ${currentWipInProgress}, Stories selected: ${storiesWithAssignments.size}, Projected WIP: ${projectedWip}, Limit: ${wipLimitInProgress}, Reached (>): ${wipLimitReached}`);
 
     // 3. Update checkboxes and warnings
     assignmentListContainer.querySelectorAll('.assignment-item').forEach(itemDiv => {
@@ -566,6 +580,10 @@ function updateAssignmentModalCheckboxes() {
         // Show/hide WIP warning for this specific story IF it's selected AND the limit is reached
         if (wipWarning) {
             wipWarning.style.display = (isStorySelected && wipLimitReached) ? 'inline' : 'none';
+             // Add specific warning text
+             if (isStorySelected && wipLimitReached) {
+                 wipWarning.textContent = ` (WIP Limit of ${wipLimitInProgress} Reached!)`;
+             }
         }
 
         itemDiv.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -574,7 +592,8 @@ function updateAssignmentModalCheckboxes() {
 
             // Disable checkbox if:
             // 1. Worker is assigned elsewhere in the modal.
-            // 2. WIP limit is reached AND this story doesn't have anyone assigned yet AND this checkbox isn't checked.
+            // 2. WIP limit is REACHED (> limit) AND this story doesn't have anyone assigned yet AND this checkbox isn't checked.
+            //    (Allows assigning workers to a story already counted towards WIP, even if at limit)
             const disableBecauseWip = wipLimitReached && !isStorySelected && !cb.checked;
 
             cb.disabled = isWorkerAssignedElsewhere || disableBecauseWip;
@@ -590,8 +609,6 @@ function updateAssignmentModalCheckboxes() {
 }
 
 
-
-// ** Populate Daily Scrum modal (Handles Multi-Assign/Unassign) **
 export function populateDailyScrumModal(day, workers, activeObstacles, storiesInProgressOrTesting) {
     const modal = document.getElementById('daily-scrum-modal');
     if (!modal) return;
@@ -816,7 +833,6 @@ function updateDailyScrumModalOptions() {
 }
 
 
-
 export function populateSprintReviewModal(sprintNum, completedStories, velocity, totalValue, avgCycleTime, sponsorFeedback, dodProgressFeedback) {
     modalSprintNumberDisplays.forEach(el => el.textContent = sprintNum);
     reviewCompletedList.innerHTML = '';
@@ -958,6 +974,7 @@ function createStorybookPagePreview(story, isFinal = false) {
     return pageDiv;
 }
 
+
 // --- Button/State Updates ---
 export function updateButtonVisibility(dayState) {
     const phaseName = GameState.getPhaseName(dayState);
@@ -993,7 +1010,9 @@ function getObstacleMessageForWorker(workerId) {
      }
     // If worker is available but assigned to a blocked story (and not unblocking)
      else if (worker && worker.available && worker.assignedStory && GameState.getStory(worker.assignedStory)?.isBlocked && !worker.isUnblocking) {
-        return 'Blocked'; // This isn't strictly an obstacle message, but conveys state
+        // Don't return "Blocked" here as the worker state text handles this.
+        // Returning "" indicates no specific *obstacle* message applies.
+        return '';
     }
     return ''; // No specific message
 }
