@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Goldilocks: A Scrum Adventure</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- DoD Choice Modal Styles -->
+    <!-- Modal Styles -->
     <style>
+        /* DoD Modal */
         .dod-option { margin-bottom: 15px; padding: 10px; border: 1px solid #eee; border-radius: 4px; }
         .dod-option label { display: block; margin-left: 5px; cursor: pointer; }
         .dod-option input[type="radio"] { margin-right: 5px; vertical-align: middle;}
@@ -14,52 +15,132 @@
         .dod-option small { display: block; color: #555; margin-left: 20px; font-size: 0.9em; margin-top: 3px;}
         #dod-form button { margin-top: 15px; }
 
-        /* Styles for checkbox assignment in Day 1 Modal */
+        /* Day 1 Assignment Modal Checkboxes */
         .worker-checkbox-container {
-            display: grid; /* Use grid for better alignment */
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsive columns */
-            gap: 5px 10px; /* Row and column gap */
-            padding-left: 10px; /* Indent checkboxes slightly */
-            margin-top: 5px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 5px 10px; padding-left: 10px; margin-top: 5px;
         }
-        .worker-checkbox-option {
-            display: flex; /* Align checkbox and label */
-            align-items: center;
-        }
-        .worker-checkbox-option input[type="checkbox"] {
-            margin-right: 5px;
-            cursor: pointer;
-        }
-        .worker-checkbox-option label {
-            font-weight: normal; /* Normal weight for worker names */
-            cursor: pointer;
-            font-size: 0.9em; /* Slightly smaller text for options */
-        }
-        .worker-checkbox-option input[type="checkbox"]:disabled + label {
-            color: #aaa; /* Gray out text for disabled workers */
-            cursor: not-allowed;
-            text-decoration: line-through; /* Optional: strike-through */
-        }
-         .assignment-item > strong { /* Style story title in modal */
-             font-size: 1.05em;
-             color: #333;
-         }
-         .assignment-item .story-details { /* Minor details */
-             font-size: 0.85em;
-             color: #666;
-             margin-bottom: 5px;
-         }
-         .wip-limit-warning {
-             color: red;
-             font-size: 0.9em;
-             font-weight: bold;
-             margin-left: 5px;
-             display: none; /* Initially hidden */
-         }
+        .worker-checkbox-option { display: flex; align-items: center; }
+        .worker-checkbox-option input[type="checkbox"] { margin-right: 5px; cursor: pointer; }
+        .worker-checkbox-option label { font-weight: normal; cursor: pointer; font-size: 0.9em; }
+        .worker-checkbox-option input[type="checkbox"]:disabled + label { color: #aaa; cursor: not-allowed; text-decoration: line-through; }
+        .assignment-item > strong { font-size: 1.05em; color: #333; }
+        .assignment-item .story-details { font-size: 0.85em; color: #666; margin-bottom: 5px; }
+        .wip-limit-warning { color: red; font-size: 0.9em; font-weight: bold; margin-left: 5px; display: none; }
+
+        /* Instructions Modal Styling */
+        #instructions-modal { max-width: 800px; } /* Wider for instructions */
+        #instructions-modal h3 { color: #3498db; margin-top: 1.2em; margin-bottom: 0.5em; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        #instructions-modal ul { margin-left: 20px; margin-bottom: 1em; list-style: disc; }
+        #instructions-modal li { margin-bottom: 0.5em; }
+        #instructions-modal strong { color: #2c3e50; }
+        #instructions-modal p { margin-bottom: 0.8em; }
+        #instructions-modal .phase-step { margin-left: 15px; margin-bottom: 10px; padding-left: 10px; border-left: 2px solid #3498db; }
 
     </style>
 </head>
 <body>
+
+    <!-- *** NEW: Instructions Modal *** -->
+    <dialog id="instructions-modal">
+        <h2>Welcome to Goldilocks: A Scrum Adventure!</h2>
+        <p>Your goal is to help a team create the Goldilocks storybook using Scrum and Kanban principles over <strong>3 Sprints</strong>.</p>
+
+        <h3>Game Goal</h3>
+        <ul>
+            <li>Complete as many <strong>User Stories</strong> (parts of the book) as possible by moving them to the "Done" column.</li>
+            <li>Meet your chosen <strong>Definition of Done (DoD)</strong> by completing specific required stories by the end of Sprint 3 for bonus points.</li>
+            <li>Higher <strong>Value</strong> (⭐) stories contribute more to the final "quality" of the storybook.</li>
+        </ul>
+
+        <h3>Game Flow: The Sprint Cycle (5 Days + Review/Retro)</h3>
+        <p>Each Sprint follows this pattern:</p>
+        <div class="phase-step">
+            <strong>1. Sprint Planning (Start of Sprint):</strong>
+            <ul>
+                <li>Review the <strong>Product Backlog</strong>.</li>
+                <li>Select User Stories for the <strong>Sprint Backlog</strong> based on your team's <strong>Capacity</strong> (total points they can likely complete).</li>
+                <li>Choose <strong>Implementation Options</strong> for stories if available (affects Effort & Outcome).</li>
+                <li><strong>Action:</strong> Check story boxes, confirm choices, click "Commit to Sprint".</li>
+            </ul>
+        </div>
+        <div class="phase-step">
+             <strong>2. Day 1 Assignment:</strong>
+             <ul>
+                 <li>Assign initial <strong>Developers</strong> (Text/Visual workers) to stories in the Sprint Backlog ('Ready' column).</li>
+                 <li>You can assign <strong>multiple workers</strong> to a single story.</li>
+                 <li>Assigning workers to a 'Ready' story moves it to 'In Progress', consuming a <strong>WIP (Work-In-Progress) Limit</strong> slot for that column. Be mindful not to exceed the limit!</li>
+                 <li><strong>Action:</strong> Use checkboxes to select workers for each story, then "Confirm Assignments".</li>
+             </ul>
+        </div>
+         <div class="phase-step">
+             <strong>3. Work Day 1 Simulation:</strong>
+             <ul>
+                 <li>Workers automatically apply their <strong>Points Per Day</strong> (+ bonus for matching story tag) to their assigned stories.</li>
+                 <li>Progress bars update. Stories finishing Development move to 'Testing'.</li>
+             </ul>
+         </div>
+         <div class="phase-step">
+             <strong>4. Daily Scrum & Reassignment (Days 2-5):</strong>
+             <ul>
+                 <li>Review progress and any new <strong>Obstacles</strong>.</li>
+                 <li><strong>Unassign</strong> workers from stories (click the '✕' button).</li>
+                 <li><strong>Assign Additional Workers</strong> (Devs to 'In Progress', Testers to 'Testing') using the dropdowns. Respects WIP limits when adding the *first* tester to a full column.</li>
+                 <li>Resolve <strong>Blocked Stories</strong> (🟧 icon): Assign an available <strong>Senior Developer</strong> (costs 1 point from their daily total).</li>
+                 <li><strong>Action:</strong> Make assignments/unassignments, resolve blockers, click "Confirm Changes".</li>
+             </ul>
+         </div>
+         <div class="phase-step">
+             <strong>5. Work Day Simulation (Days 2-5):</strong>
+             <ul>
+                 <li>Workers apply points to assigned, unblocked stories.</li>
+                 <li>Stories finishing Development move to 'Testing'. Stories finishing Testing move to 'Done' (and workers are auto-unassigned).</li>
+             </ul>
+         </div>
+         <div class="phase-step">
+             <strong>6. Sprint Review (End of Sprint):</strong>
+             <ul>
+                 <li>See completed stories, calculated <strong>Velocity</strong> (total points done), Value delivered, and <strong>Average Cycle Time</strong>.</li>
+                 <li>View a preview of the storybook pages created.</li>
+                 <li>Get Sponsor Feedback and DoD progress update.</li>
+                 <li><strong>Action:</strong> Click "Proceed to Retrospective".</li>
+             </ul>
+         </div>
+         <div class="phase-step">
+              <strong>7. Sprint Retrospective (End of Sprint):</strong>
+              <ul>
+                  <li>Reflect on the sprint.</li>
+                  <li><strong>Action:</strong> Fill in the fields and click "Finish Retrospective" (or "Finish Game" after Sprint 3).</li>
+              </ul>
+         </div>
+
+        <h3>Key Concepts</h3>
+        <ul>
+            <li><strong>User Stories:</strong> Have Effort (points), Value (⭐), Tags (Visual, Text, Plot, etc.), Status (column), and sometimes Implementation Choices.</li>
+            <li><strong>Kanban Board:</strong> Visualizes workflow. Stories flow from Ready -> In Progress -> Testing -> Done.</li>
+            <li><strong>WIP Limits:</strong> Maximum number of stories allowed in 'In Progress' and 'Testing' simultaneously. Crucial for flow! Shown as (X/Y) on column headers. Assigning work that exceeds the limit will be blocked.</li>
+             <li><strong>Multi-Assignment:</strong> You can assign multiple Devs to 'In Progress' stories or multiple Testers to 'Testing' stories to potentially finish them faster.</li>
+            <li><strong>Team Workers:</strong> Have Area (Visual/Text/Testing), Skill (Senior/Junior), Points/Day. Seniors can unblock. Matching worker Area to story Tag gives a small work bonus.</li>
+            <li><strong>Blockers & Obstacles:</strong> Random events. Blockers stop stories (need unblocking). Obstacles reduce worker points or availability. Check the Obstacle display in the Daily Scrum.</li>
+             <li><strong>WIP Aging:</strong> How many days a story has been in its current column ('In Progress' or 'Testing'). High age (shown on card) indicates potential problems.</li>
+             <li><strong>Cycle Time:</strong> Average time (in work days) a story takes from starting ('In Progress') to finishing ('Done'). Lower is generally better.</li>
+        </ul>
+
+        <h3>Tips for Success</h3>
+        <ul>
+            <li>Don't overcommit in Sprint Planning. Respect your team's capacity.</li>
+            <li>Pay close attention to WIP limits. Avoid starting too much work at once.</li>
+            <li>Use the Daily Scrum to reassign workers effectively if stories get blocked or priorities change.</li>
+            <li>Assign Senior Devs to unblock critical stories quickly.</li>
+            <li>Consider assigning multiple workers to high-priority or high-effort stories.</li>
+             <li>Balance completing stories (Velocity) with delivering valuable features (Value ⭐) and meeting your DoD.</li>
+        </ul>
+
+        <button id="start-game-from-instructions-btn">Let's Make a Storybook!</button>
+    </dialog>
+    <!-- *** END Instructions Modal *** -->
+
+
     <header>
         <h1>Goldilocks: A Scrum Adventure</h1>
         <div id="sprint-info">
@@ -111,38 +192,38 @@
 
     </main>
 
-    <!-- Modals -->
+    <!-- Other Modals (DoD, Learning, Planning, etc.) -->
+    <!-- DoD Choice Modal -->
+     <dialog id="dod-choice-modal">
+         <h2>Choose Your Goal (Definition of Done)</h2>
+         <p>Select the level of completeness you aim for by the end of Sprint 3. Meeting your goal grants bonus points!</p>
+         <form id="dod-form">
+             <div class="dod-option">
+                 <input type="radio" id="dod-easy" name="dod-level" value="easy" checked>
+                 <label for="dod-easy">
+                     <strong>Easy - Core Plot:</strong> Complete the essential story beats. (+<span class="bonus-points-easy">?</span> pts)
+                     <small>Focus: Basic beginning, middle, and end text.</small>
+                 </label>
+             </div>
+             <div class="dod-option">
+                 <input type="radio" id="dod-medium" name="dod-level" value="medium">
+                 <label for="dod-medium">
+                     <strong>Medium - Illustrated Story:</strong> Complete the core plot with key illustrations and intro/conclusion. (+<span class="bonus-points-medium">?</span> pts)
+                     <small>Focus: Core text + important visuals.</small>
+                 </label>
+             </div>
+             <div class="dod-option">
+                 <input type="radio" id="dod-hard" name="dod-level" value="hard">
+                 <label for="dod-hard">
+                     <strong>Hard - Polished & Marketable:</strong> Complete a rich story with detailed text, visuals, cover, and marketing. (+<span class="bonus-points-hard">?</span> pts)
+                     <small>Focus: High-quality choices, visuals, and extras.</small>
+                 </label>
+             </div>
+             <button type="submit" id="confirm-dod-btn">Set Goal & Start Planning</button> <!-- Changed button text slightly -->
+         </form>
+     </dialog>
 
-    <!-- DoD Choice Modal (Show at Game Start) -->
-    <dialog id="dod-choice-modal">
-        <h2>Choose Your Goal (Definition of Done)</h2>
-        <p>Select the level of completeness you aim for by the end of Sprint 3. Meeting your goal grants bonus points!</p>
-        <form id="dod-form">
-            <div class="dod-option">
-                <input type="radio" id="dod-easy" name="dod-level" value="easy" checked>
-                <label for="dod-easy">
-                    <strong>Easy - Core Plot:</strong> Complete the essential story beats. (+<span class="bonus-points-easy">?</span> pts)
-                    <small>Focus: Basic beginning, middle, and end text.</small>
-                </label>
-            </div>
-            <div class="dod-option">
-                <input type="radio" id="dod-medium" name="dod-level" value="medium">
-                <label for="dod-medium">
-                    <strong>Medium - Illustrated Story:</strong> Complete the core plot with key illustrations and intro/conclusion. (+<span class="bonus-points-medium">?</span> pts)
-                    <small>Focus: Core text + important visuals.</small>
-                </label>
-            </div>
-            <div class="dod-option">
-                <input type="radio" id="dod-hard" name="dod-level" value="hard">
-                <label for="dod-hard">
-                    <strong>Hard - Polished & Marketable:</strong> Complete a rich story with detailed text, visuals, cover, and marketing. (+<span class="bonus-points-hard">?</span> pts)
-                    <small>Focus: High-quality choices, visuals, and extras.</small>
-                </label>
-            </div>
-            <button type="submit" id="confirm-dod-btn">Set Goal & Start Game</button>
-        </form>
-    </dialog>
-
+    <!-- Learning Modal -->
     <dialog id="learning-modal">
         <h2>Scrum & Kanban Basics</h2>
          <h4>Key Concepts</h4>
@@ -158,13 +239,14 @@
          <ul>
              <li><strong>WIP Limits:</strong> Displayed on column headers (e.g., "WIP: 1/5"). Assigning work will be blocked if a limit is reached when moving a story into a column.</li>
               <li><strong>WIP Aging:</strong> Shows how many days a card has been in 'In Progress' or 'Testing' (e.g., "Age: 2d"). High age might indicate a problem or bottleneck.</li>
-              <li><strong>Cycle Time:</strong> Calculated in Sprint Review. Measures the average time from starting development ('In Progress') to finishing testing ('Done'). Lower is generally better.</li>
-             <li><strong>Blockers:</strong> Obstacles can block stories (indicated by 🟧 border/icon). Blocked stories cannot progress. Assign a <strong>Senior Developer</strong> during the Reassignment phase to unblock a story (costs <span id="unblocking-cost">1</span> pt!).</li>
+              <li><strong>Cycle Time:</strong> Calculated in Sprint Review. Measures the average time (in work days) from starting development ('In Progress') to finishing testing ('Done'). Lower is generally better.</li>
+             <li><strong>Blockers:</strong> Obstacles can block stories (indicated by 🟧 border/icon). Blocked stories cannot progress. Assign a <strong>Senior Developer</strong> during the Reassignment phase to unblock a story (costs <span id="unblocking-cost-display">1</span> pt!).</li>
              <li><strong>Multi-Assignment:</strong> You can assign multiple workers (Devs or Testers) to the same story during the Assignment/Reassignment phases to speed up progress.</li>
          </ul>
         <button class="close-modal-btn">Close</button>
     </dialog>
 
+    <!-- Sprint Planning Modal -->
     <dialog id="sprint-planning-modal">
         <h2>Sprint <span class="modal-sprint-number">1</span> Planning</h2>
         <p>Select stories from the Product Backlog. Choose implementations if needed. Commit when ready.</p>
@@ -176,6 +258,7 @@
         <button class="close-modal-btn">Cancel</button>
     </dialog>
 
+    <!-- Procedural Choice Modal -->
      <dialog id="procedural-choice-modal">
         <h2 id="choice-story-title">Choose Implementation</h2>
         <div id="choice-options"></div>
@@ -188,26 +271,13 @@
         <p>Assign available Developers to stories in the Sprint Backlog. You can assign multiple workers. Respect WIP limits!</p>
         <p id="inprogress-wip-info" class="wip-limit">In Progress WIP: <span class="wip-count">0</span>/<span class="wip-max">?</span></p>
         <div id="assignment-list">
-            <!-- Example Structure (Generated by JS):
-            <div class="assignment-item" data-story-id="story-1">
-                 <strong>Story Title</strong> (Effort: X) <span class="wip-limit-warning"> (WIP Limit Reached)</span> <br>
-                 <span class="story-details">Tags: Tag1, Tag2</span>
-                 <label>Assign Developers:</label>
-                 <div class="worker-checkbox-container">
-                     <div class="worker-checkbox-option">
-                         <input type="checkbox" id="assign-story-1-w1" value="w1" data-story-id="story-1">
-                         <label for="assign-story-1-w1">Worker Name (Area Skill - Pts)</label>
-                     </div>
-                     </div>
-                 </div>
-            </div>
-            -->
+            <!-- Structure Generated by JS -->
         </div>
         <button id="confirm-assignments-btn">Confirm Assignments & Start Day 1 Work</button>
         <button class="close-modal-btn">Cancel</button>
     </dialog>
 
-    <!-- Daily Scrum Modal - Day 2-5 Reassignment/Add/Unblock (Structure is mostly ok) -->
+    <!-- Daily Scrum Modal -->
     <dialog id="daily-scrum-modal">
         <h2>Daily Scrum & Reassignment - Day <span id="daily-scrum-day">?</span></h2>
         <p>Review progress, obstacles. Unassign workers, add workers to stories, or resolve blockers. Respect WIP limits!</p>
@@ -218,22 +288,17 @@
              </p>
         </div>
         <div id="obstacle-display" style="color: orange; margin-top: 10px;"></div>
-
-         <!-- Blocker Resolution Section -->
          <div id="blocker-resolution-section" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; display: none;">
              <h4>Resolve Blockers (Optional)</h4>
-             <p>Assign a <strong>Senior Developer</strong> (cost: <span id="unblocking-cost-display">1</span> pt).</p> <!-- updated span id -->
-             <div id="blocker-assignment-list"> <!-- Populated dynamically --> </div>
+             <p>Assign a <strong>Senior Developer</strong> (cost: <span id="unblocking-cost-display">1</span> pt).</p>
+             <div id="blocker-assignment-list"></div>
          </div>
-
-        <!-- Reassignment / Add Worker Section -->
         <div id="reassignment-section" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
             <h4>Manage Work Assignments</h4>
-             <div id="reassignment-list"> <!-- Populated dynamically --> </div>
+             <div id="reassignment-list"></div>
         </div>
-
         <button id="confirm-reassignments-btn">Confirm Changes & Start Work Day <span id="confirm-work-day-num">?</span></button>
-         <button class="close-modal-btn">Cancel</button> <!-- Added cancel button -->
+         <button class="close-modal-btn">Cancel</button>
     </dialog>
 
     <!-- Sprint Review Modal -->
@@ -265,7 +330,7 @@
             <button type="submit">Finish Retrospective & Start Next Sprint</button>
         </form>
          <button id="end-game-btn" style="display:none;">Finish Game</button>
-         <button class="close-modal-btn">Cancel</button> <!-- Added cancel button -->
+         <button class="close-modal-btn">Cancel</button>
     </dialog>
 
     <!-- Final Storybook Modal -->
@@ -279,7 +344,7 @@
 
     <!-- Story Card Template -->
     <template id="story-card-template">
-        <article class="story-card"> <!-- data-blocked, data-aging set by JS -->
+        <article class="story-card" data-blocked="false" data-aging="false"> <!-- Set defaults -->
             <h4 class="story-title">Story Title</h4>
             <div class="story-meta">
                 <span>Effort: <span class="story-effort">?</span></span>
@@ -287,10 +352,8 @@
                 <span class="story-age" style="display: none;">Age: ?d</span>
             </div>
             <div class="story-tags"></div>
-            <!-- Updated Assignment Display -->
             <div class="story-assignment">Assigned: <span class="story-worker">None</span></div>
              <div class="blocker-info" style="display: none;">🟧 BLOCKED!</div>
-            <!-- Progress Bars -->
             <div class="story-progress" style="display: none;">
                  <label>Dev:</label>
                  <progress class="dev-progress" value="0" max="100"></progress>
@@ -306,14 +369,13 @@
 
     <!-- Worker Template -->
      <template id="worker-template">
-        <div class="worker-status"> <!-- data-state set by JS -->
+        <div class="worker-status" data-state="idle"> <!-- Set default -->
             <span class="worker-avatar"></span>
             <span class="worker-name">Worker Name</span>
             (<span class="worker-area">Area</span> - <span class="worker-skill">Skill</span>: <span class="worker-points">X</span> pts/day)
             - <span class="worker-state">Idle</span>
         </div>
     </template>
-
 
     <!-- External Libraries -->
     <script src="vendor/sortable.min.js"></script>

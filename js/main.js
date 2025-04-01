@@ -29,22 +29,38 @@ const endGameBtn = document.getElementById('end-game-btn');
 // --- DoD Refs ---
 const dodChoiceModal = document.getElementById('dod-choice-modal');
 const dodForm = document.getElementById('dod-form');
+// --- Instructions Refs ---
+const instructionsModal = document.getElementById('instructions-modal'); // New
+const startGameFromInstructionsBtn = document.getElementById('start-game-from-instructions-btn'); // New
 
 
 // --- Initialization ---
 function initGame() {
-    console.log("Initializing Game (Multi-Assign, WIP 3)..."); // Updated log message
+    console.log("Initializing Game (Instructions & Multi-Assign)...");
     GameState.loadInitialState(initialProductBacklog); // Load state (resets DoD)
     UI.renderWorkers(GameState.getTeam()); // Render workers early
     Kanban.initializeKanbanBoards(null); // Initialize Kanban display (drag disabled)
     setupEventListeners();
 
-    // --- Start Game with DoD Choice ---
-    Simulation.startGameFlow(); // Start with DoD choice
+    // --- Start Game with Instructions ---
+    if (instructionsModal) {
+        UI.showModal(instructionsModal); // Show instructions first
+    } else {
+        console.error("Instructions modal not found! Proceeding without instructions.");
+        Simulation.startGameFlow(); // Fallback: Start with DoD choice if instructions modal is missing
+    }
 }
 
 // --- Event Listeners ---
 function setupEventListeners() {
+    // ** New: Start Game from Instructions **
+    if (startGameFromInstructionsBtn) {
+        startGameFromInstructionsBtn.addEventListener('click', () => {
+            UI.closeModal(instructionsModal);
+            Simulation.startGameFlow(); // Proceed to DoD choice
+        });
+    }
+
     // DoD Form Submission
     dodForm.addEventListener('submit', (event) => {
         event.preventDefault(); // Prevent default form submission
@@ -52,7 +68,7 @@ function setupEventListeners() {
         Simulation.confirmDoDChoice();
     });
 
-    // Other Buttons (No changes needed here, simulation functions handle new logic)
+    // Other Buttons
     openLearningBtn.addEventListener('click', () => UI.showModal(learningModal));
     commitSprintBtn.addEventListener('click', Simulation.commitToSprint); // Planning Modal
     confirmAssignmentsBtn.addEventListener('click', Simulation.confirmWorkerAssignments); // Assignment Modal (Day 1)
@@ -74,6 +90,17 @@ function setupEventListeners() {
             if (modal) UI.closeModal(modal);
         });
     });
+
+    // Close instructions modal if clicking backdrop (optional, standard dialog behavior)
+    if (instructionsModal) {
+        instructionsModal.addEventListener('click', (event) => {
+            if (event.target === instructionsModal) {
+                // Optionally close or require button click
+                 // UI.closeModal(instructionsModal);
+            }
+        });
+    }
+
 
     console.log(">>> Event listeners setup complete.");
 }
