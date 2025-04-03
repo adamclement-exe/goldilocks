@@ -248,6 +248,158 @@ header h1 {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
+    margin-bottom: 4px;
+    gap: 5px 10px;
+}
+
+.story-meta span span {
+    font-weight: bold;
+    color: #555;
+}
+
+.story-age {
+    font-size: 0.8em;
+    color: #999;
+    background-color: #f0f0f0;
+    padding: 0 4px;
+    border-radius: 3px;
+    font-style: italic;
+}
+
+.story-tags {
+    margin-bottom: 4px;
+    line-height: 1.5;
+}
+
+.tag {
+    display: inline-block;
+    font-size: 0.8em;
+    padding: 1px 5px;
+    border-radius: 10px;
+    color: white;
+    margin-right: 3px;
+    margin-bottom: 2px;
+}
+
+/* Tag Colors */
+.tag-visual { background-color: #3498db; }
+.tag-text { background-color: #2ecc71; }
+.tag-activity { background-color: #f1c40f; color: #333; }
+.tag-marketing { background-color: #9b59b6; }
+.tag-design { background-color: #e74c3c; }
+.tag-character { background-color: #1abc9c; }
+.tag-plot { background-color: #e67e22; }
+.tag-setting { background-color: #7f8c8d; }
+.tag-dialogue { background-color: #34495e; }
+.tag-climax { background-color: #c0392b; }
+.tag-resolution { background-color: #27ae60; }
+.tag-testing { background-color: #f39c12; }
+
+/* Worker Assignment Styling */
+.story-assignment {
+    font-size: 0.9em;
+    color: #888;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+.story-assignment .story-worker {
+    font-style: normal;
+    color: inherit;
+}
+
+/* Worker Pill Styling */
+.worker-pill {
+    display: inline-block;
+    font-size: 0.8em;
+    padding: 1px 6px;
+    border-radius: 10px;
+    color: white;
+    margin-right: 3px;
+    margin-bottom: 3px;
+    font-weight: 500;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Blocker Info Styling */
+.blocker-info {
+    color: orange;
+    font-weight: bold;
+    font-size: 0.9em;
+    margin-top: 4px;
+    display: none;
+}
+
+/* Progress Bar Styling */
+.story-progress, .story-testing-progress {
+    margin-top: 5px;
+    font-size: 0.85em;
+}
+
+.story-progress label, .story-testing-progress label {
+    display: inline-block;
+    width: 35px;
+    color: #555;
+    font-weight: 500;
+}
+
+.story-progress progress, .story-testing-progress progress {
+    width: calc(100% - 90px);
+    height: 10px;
+    vertical-align: middle;
+    margin: 0 5px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Progress bar colors */
+progress::-webkit-progress-bar {
+    background-color: #eee;
+    border-radius: 5px;
+}
+
+progress.dev-progress::-webkit-progress-value {
+    background-color: #2ecc71;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+progress.test-progress::-webkit-progress-value {
+    background-color: #f39c12;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+/* Firefox specific */
+progress.dev-progress::-moz-progress-bar {
+    background-color: #2ecc71;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+progress.test-progress::-moz-progress-bar {
+    background-color: #f39c12;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+/* Style for points remaining spans */
+.dev-points-remaining, .test-points-remaining {
+    display: inline-block;
+    width: 40px;
+    text-align: right;
+    color: #555;
+    font-weight: 500;
+    font-size: 0.9em;
+    vertical-align: middle;
+}
+
+/* SortableJS Helper Class */
+.sortable-ghost {
+    opacity: 0.4;
+    background: #c8ebfb;
 }
 
 /* Story Card Animation */
