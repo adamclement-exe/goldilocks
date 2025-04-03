@@ -55,50 +55,32 @@ const unblockingCostDisplay = document.getElementById('unblocking-cost-display')
 export let pendingUnassignments = new Set();
 
 // Tutorial Modals
-const tutorialModals = {
-    achievements: {
-        title: "Achievements System",
-        content: `
-            <h3>Welcome to the Achievements System!</h3>
-            <p>As you play, you'll unlock achievements for completing special challenges:</p>
-            <ul>
-                <li><strong>Perfect Sprint</strong>: Complete all planned stories in a sprint</li>
-                <li><strong>Testing Master</strong>: Complete testing on 3 stories in one day</li>
-                <li><strong>Unblocking Hero</strong>: Unblock 3 stories in one sprint</li>
-                <li><strong>Story Flow</strong>: Complete 5 stories in a row without blocking</li>
-                <li><strong>Resource Master</strong>: Use all team members perfectly for 3 days</li>
-            </ul>
-            <p>Each achievement gives bonus points and helps you track your progress!</p>
-        `
-    },
-    events: {
-        title: "Special Events",
-        content: `
-            <h3>Special Events System</h3>
-            <p>Random events can occur during your sprint, affecting your team:</p>
-            <ul>
-                <li><strong>Team Morale Boost</strong>: All workers get +0.5 points for the day</li>
-                <li><strong>Testing Focus</strong>: Testing effort reduced by 1 point for the day</li>
-                <li><strong>Creative Block</strong>: Visual work capacity reduced by 50%</li>
-                <li><strong>Pair Programming</strong>: Two workers can collaborate with 1.5x efficiency</li>
-            </ul>
-            <p>Adapt your strategy to make the most of these events!</p>
-        `
-    },
-    teamDynamics: {
-        title: "Team Dynamics",
-        content: `
-            <h3>Team Dynamics System</h3>
-            <p>Your team members interact in special ways:</p>
-            <ul>
-                <li><strong>Mentoring</strong>: Seniors boost junior capacity when working together</li>
-                <li><strong>Team Chemistry</strong>: Workers in the same area get efficiency bonuses</li>
-                <li><strong>Burnout</strong>: Overworked workers get temporary capacity reduction</li>
-            </ul>
-            <p>Use these dynamics to optimize your team's performance!</p>
-        `
+const tutorialModals = {};
+
+// Initialize UI Components
+export function initializeGameUI() {
+    // Get or create game container
+    let gameContainer = document.getElementById('game-container');
+    if (!gameContainer) {
+        gameContainer = document.createElement('div');
+        gameContainer.id = 'game-container';
+        document.body.appendChild(gameContainer);
     }
-};
+    
+    // Add displays to the game container
+    const achievementDisplay = createAchievementDisplay();
+    const eventDisplay = createEventDisplay();
+    const teamDynamicsDisplay = createTeamDynamicsDisplay();
+    
+    gameContainer.appendChild(achievementDisplay);
+    gameContainer.appendChild(eventDisplay);
+    gameContainer.appendChild(teamDynamicsDisplay);
+    
+    // Initial updates
+    updateAchievementDisplay();
+    updateEventDisplay();
+    updateTeamDynamicsDisplay();
+}
 
 // Achievement Display
 function createAchievementDisplay() {
@@ -109,6 +91,11 @@ function createAchievementDisplay() {
     const header = document.createElement('h3');
     header.textContent = 'Achievements';
     container.appendChild(header);
+    
+    const explanation = document.createElement('p');
+    explanation.className = 'section-explanation';
+    explanation.textContent = 'Complete special challenges to earn bonus points and track your progress.';
+    container.appendChild(explanation);
     
     const list = document.createElement('ul');
     list.id = 'achievement-list';
@@ -126,6 +113,11 @@ function createEventDisplay() {
     const header = document.createElement('h3');
     header.textContent = 'Active Events';
     container.appendChild(header);
+    
+    const explanation = document.createElement('p');
+    explanation.className = 'section-explanation';
+    explanation.textContent = 'Random events that temporarily affect your team\'s performance.';
+    container.appendChild(explanation);
     
     const list = document.createElement('ul');
     list.id = 'event-list';
@@ -151,31 +143,6 @@ function createTeamDynamicsDisplay() {
     return container;
 }
 
-// Show Tutorial Modal
-export function showTutorialModal(topic) {
-    const modal = document.createElement('div');
-    modal.className = 'tutorial-modal';
-    
-    const content = document.createElement('div');
-    content.className = 'tutorial-content';
-    
-    const title = document.createElement('h2');
-    title.textContent = tutorialModals[topic].title;
-    content.appendChild(title);
-    
-    const body = document.createElement('div');
-    body.innerHTML = tutorialModals[topic].content;
-    content.appendChild(body);
-    
-    const closeButton = document.createElement('button');
-    closeButton.textContent = 'Got it!';
-    closeButton.onclick = () => modal.remove();
-    content.appendChild(closeButton);
-    
-    modal.appendChild(content);
-    document.body.appendChild(modal);
-}
-
 // Update Achievement Display
 export function updateAchievementDisplay() {
     const list = document.getElementById('achievement-list');
@@ -183,6 +150,13 @@ export function updateAchievementDisplay() {
     
     list.innerHTML = '';
     const achievements = GameState.getAchievements();
+    
+    if (achievements.length === 0) {
+        const item = document.createElement('li');
+        item.textContent = 'None';
+        list.appendChild(item);
+        return;
+    }
     
     achievements.forEach(achievement => {
         const item = document.createElement('li');
@@ -210,6 +184,13 @@ export function updateEventDisplay() {
     list.innerHTML = '';
     const activeEvents = GameState.getActiveEvents();
     
+    if (activeEvents.length === 0) {
+        const item = document.createElement('li');
+        item.textContent = 'None';
+        list.appendChild(item);
+        return;
+    }
+    
     activeEvents.forEach(event => {
         const item = document.createElement('li');
         item.className = 'event-item';
@@ -236,71 +217,75 @@ export function updateTeamDynamicsDisplay() {
     list.innerHTML = '';
     const dynamics = GameState.getTeamDynamics();
     
-    Object.entries(dynamics).forEach(([key, active]) => {
-        if (active) {
-            const item = document.createElement('li');
-            item.className = 'dynamics-item';
-            
-            const name = document.createElement('span');
-            name.className = 'dynamics-name';
-            name.textContent = key;
-            
-            const description = document.createElement('span');
-            description.className = 'dynamics-description';
-            description.textContent = `Active: ${active}`;
-            
-            item.appendChild(name);
-            item.appendChild(description);
-            list.appendChild(item);
+    const dynamicsInfo = {
+        'mentoring': {
+            title: 'Mentoring Active',
+            description: 'Senior developers are mentoring juniors',
+            effect: '+50% capacity for juniors when working with seniors',
+            icon: '👥'
+        },
+        'team_chemistry': {
+            title: 'Team Chemistry',
+            description: 'Team members with matching specialties work better together',
+            effect: '+25% efficiency boost for matching specialties',
+            icon: '⚡'
+        },
+        'burnout': {
+            title: 'Burnout Warning',
+            description: 'Some team members are overworked',
+            effect: '-30% capacity for affected workers',
+            icon: '⚠️'
         }
-    });
-}
+    };
 
-// Initialize UI Components
-export function initializeGameUI() {
-    // Get or create game container
-    let gameContainer = document.getElementById('game-container');
-    if (!gameContainer) {
-        gameContainer = document.createElement('div');
-        gameContainer.id = 'game-container';
-        document.body.appendChild(gameContainer);
+    // First check if any dynamics are active
+    const activeDynamics = Object.entries(dynamics).filter(([_, active]) => active);
+    
+    if (activeDynamics.length === 0) {
+        const item = document.createElement('li');
+        item.className = 'dynamics-item dynamics-none';
+        item.textContent = 'No active team dynamics';
+        list.appendChild(item);
+        return;
     }
     
-    // Add displays to the game container
-    const achievementDisplay = createAchievementDisplay();
-    const eventDisplay = createEventDisplay();
-    const teamDynamicsDisplay = createTeamDynamicsDisplay();
-    
-    gameContainer.appendChild(achievementDisplay);
-    gameContainer.appendChild(eventDisplay);
-    gameContainer.appendChild(teamDynamicsDisplay);
-    
-    // Add tutorial buttons
-    const tutorialButtons = document.createElement('div');
-    tutorialButtons.className = 'tutorial-buttons';
-    
-    const achievementTutorial = document.createElement('button');
-    achievementTutorial.textContent = 'Achievements Help';
-    achievementTutorial.onclick = () => showTutorialModal('achievements');
-    
-    const eventTutorial = document.createElement('button');
-    eventTutorial.textContent = 'Events Help';
-    eventTutorial.onclick = () => showTutorialModal('events');
-    
-    const dynamicsTutorial = document.createElement('button');
-    dynamicsTutorial.textContent = 'Team Dynamics Help';
-    dynamicsTutorial.onclick = () => showTutorialModal('teamDynamics');
-    
-    tutorialButtons.appendChild(achievementTutorial);
-    tutorialButtons.appendChild(eventTutorial);
-    tutorialButtons.appendChild(dynamicsTutorial);
-    
-    gameContainer.appendChild(tutorialButtons);
-    
-    // Initial updates
-    updateAchievementDisplay();
-    updateEventDisplay();
-    updateTeamDynamicsDisplay();
+    activeDynamics.forEach(([key, _]) => {
+        const info = dynamicsInfo[key];
+        if (!info) return;
+
+        const item = document.createElement('li');
+        item.className = `dynamics-item dynamics-${key}`;
+        
+        // Header with icon
+        const header = document.createElement('div');
+        header.className = 'dynamics-header';
+        
+        const icon = document.createElement('span');
+        icon.className = 'dynamics-icon';
+        icon.textContent = info.icon;
+        header.appendChild(icon);
+        
+        const title = document.createElement('span');
+        title.className = 'dynamics-title';
+        title.textContent = info.title;
+        header.appendChild(title);
+        
+        item.appendChild(header);
+        
+        // Description
+        const description = document.createElement('div');
+        description.className = 'dynamics-description';
+        description.textContent = info.description;
+        item.appendChild(description);
+        
+        // Effect
+        const effect = document.createElement('div');
+        effect.className = 'dynamics-effect';
+        effect.textContent = info.effect;
+        item.appendChild(effect);
+        
+        list.appendChild(item);
+    });
 }
 
 // --- Rendering Functions ---
@@ -758,10 +743,10 @@ export function showProceduralChoiceModal(story) {
 export function populateWorkerAssignmentModal(storiesToAssign, availableWorkers) {
     if (!assignmentListContainer) { console.error("Assignment list container not found for Day 1 modal."); return; }
     assignmentListContainer.innerHTML = '';
-    assignmentListContainer.removeEventListener('change', updateDay1AssignmentModalCheckboxes); // Use specific handler name
+    assignmentListContainer.removeEventListener('change', updateDay1AssignmentModalCheckboxes);
     updateWipDisplays();
 
-    const readyStories = storiesToAssign.filter(s => s && s.status === 'ready'); // Ensure only ready stories
+    const readyStories = storiesToAssign.filter(s => s && s.status === 'ready');
 
     if (readyStories.length === 0) {
         assignmentListContainer.innerHTML = '<p>No stories in the Sprint Backlog (Ready) require assignment.</p>';
@@ -770,51 +755,66 @@ export function populateWorkerAssignmentModal(storiesToAssign, availableWorkers)
 
     readyStories.forEach(story => {
         const storyDiv = document.createElement('div');
-        storyDiv.className = 'assignment-item'; storyDiv.dataset.storyId = story.id;
+        storyDiv.className = 'assignment-item';
+        storyDiv.dataset.storyId = story.id;
 
         // Story Info
         const storyInfo = document.createElement('div');
         storyInfo.innerHTML = `<strong>${story.title}</strong> (Effort: ${story.chosenImplementation ? story.chosenImplementation.effort : story.baseEffort})`;
         const wipWarningSpan = document.createElement('span');
-        wipWarningSpan.className = 'wip-limit-warning'; wipWarningSpan.style.cssText = 'color: red; margin-left: 5px; font-weight: bold; display: none;';
+        wipWarningSpan.className = 'wip-limit-warning';
+        wipWarningSpan.style.cssText = 'color: red; margin-left: 5px; font-weight: bold; display: none;';
         storyInfo.appendChild(wipWarningSpan);
         storyDiv.appendChild(storyInfo);
 
         // Tags
         const storyTags = Array.isArray(story.tags) ? story.tags : [];
         const storyDetails = document.createElement('span');
-        storyDetails.className = 'story-details'; storyDetails.textContent = `Tags: ${storyTags.join(', ')}`;
+        storyDetails.className = 'story-details';
+        storyDetails.textContent = `Tags: ${storyTags.join(', ')}`;
         storyDetails.style.cssText = 'font-size: 0.85em; color: #666; display: block; margin-bottom: 3px;';
         storyDiv.appendChild(storyDetails);
 
         // Checkbox Section
-        const assignLabel = document.createElement('label'); assignLabel.textContent = 'Assign Developers:';
+        const assignLabel = document.createElement('label');
+        assignLabel.textContent = 'Assign Developers:';
         assignLabel.style.cssText = 'display: block; margin-top: 5px; font-weight: bold;';
         storyDiv.appendChild(assignLabel);
-        const checkboxContainer = document.createElement('div'); checkboxContainer.className = 'worker-checkbox-container'; checkboxContainer.dataset.storyId = story.id;
+        const checkboxContainer = document.createElement('div');
+        checkboxContainer.className = 'worker-checkbox-container';
+        checkboxContainer.dataset.storyId = story.id;
 
         let hasDevs = false;
         availableWorkers.forEach(worker => {
-            if (worker.area !== 'Testing') { // Only Devs
+            if (worker.area !== 'Testing') {
                 hasDevs = true;
-                const optionDiv = document.createElement('div'); optionDiv.className = 'worker-checkbox-option';
-                const checkbox = document.createElement('input'); checkbox.type = 'checkbox';
-                checkbox.id = `assign-${story.id}-${worker.id}`; checkbox.value = worker.id;
-                checkbox.dataset.storyId = story.id; checkbox.dataset.workerId = worker.id;
-                const label = document.createElement('label'); label.htmlFor = checkbox.id;
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'worker-checkbox-option';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `assign-${story.id}-${worker.id}`;
+                checkbox.value = worker.id;
+                checkbox.dataset.storyId = story.id;
+                checkbox.dataset.workerId = worker.id;
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
                 const specialtyMatch = storyTags.includes(worker.area);
-                label.textContent = `${worker.name} (${worker.skill[0]} ${worker.pointsPerDay}pts)${specialtyMatch ? ' ✨' : ''}`;
-                optionDiv.appendChild(checkbox); optionDiv.appendChild(label);
+                const roundedPoints = Math.round(worker.pointsPerDay * 10) / 10; // Round to 1 decimal place
+                label.textContent = `${worker.name} (${worker.skill[0]} ${roundedPoints}pts)${specialtyMatch ? ' ✨' : ''}`;
+                optionDiv.appendChild(checkbox);
+                optionDiv.appendChild(label);
                 checkboxContainer.appendChild(optionDiv);
             }
         });
-        if (!hasDevs) { checkboxContainer.innerHTML = '<p style="font-size: 0.9em; color: #777;">No available developers.</p>'; }
+        if (!hasDevs) {
+            checkboxContainer.innerHTML = '<p style="font-size: 0.9em; color: #777;">No available developers.</p>';
+        }
         storyDiv.appendChild(checkboxContainer);
         assignmentListContainer.appendChild(storyDiv);
     });
 
     assignmentListContainer.addEventListener('change', updateDay1AssignmentModalCheckboxes);
-    updateDay1AssignmentModalCheckboxes(); // Initial update
+    updateDay1AssignmentModalCheckboxes();
 }
 
 // Updates Day 1 Assignment Modal Checkboxes

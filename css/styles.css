@@ -118,32 +118,103 @@
 
 /* Team Dynamics Display */
 .team-dynamics-container {
-    background: #fff3e0;
+    background: white;
     border-radius: 8px;
     padding: 15px;
     margin: 10px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.dynamics-item {
-    display: flex;
-    flex-direction: column;
-    padding: 8px;
-    margin: 5px 0;
-    background: white;
-    border-radius: 4px;
-    border-left: 4px solid #FF9800;
+.team-dynamics-container h3 {
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
-.dynamics-name {
+.dynamics-item {
+    margin: 12px 0;
+    padding: 12px;
+    border-radius: 8px;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+.dynamics-none {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.dynamics-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.dynamics-icon {
+    font-size: 1.5em;
+    margin-right: 10px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dynamics-title {
     font-weight: bold;
+    font-size: 1.1em;
     color: #333;
-    margin-bottom: 4px;
 }
 
 .dynamics-description {
     color: #666;
     font-size: 0.9em;
+    margin: 4px 0;
+    padding-left: 38px;
+}
+
+.dynamics-effect {
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.9em;
+    margin-left: 38px;
+}
+
+/* Specific dynamic styles */
+.dynamics-mentoring {
+    background: #e3f2fd;
+    border-left: 4px solid #2196F3;
+}
+
+.dynamics-mentoring .dynamics-effect {
+    background: rgba(33, 150, 243, 0.1);
+    color: #1976D2;
+}
+
+.dynamics-team_chemistry {
+    background: #e8f5e9;
+    border-left: 4px solid #4CAF50;
+}
+
+.dynamics-team_chemistry .dynamics-effect {
+    background: rgba(76, 175, 80, 0.1);
+    color: #388E3C;
+}
+
+.dynamics-burnout {
+    background: #fff3e0;
+    border-left: 4px solid #FF9800;
+}
+
+.dynamics-burnout .dynamics-effect {
+    background: rgba(255, 152, 0, 0.1);
+    color: #F57C00;
 }
 
 /* Tutorial Modals */
@@ -253,4 +324,11 @@
 /* Ensure tutorial modals appear above other modals */
 .tutorial-modal {
     z-index: 1001;
+}
+
+.section-explanation {
+    font-size: 0.9em;
+    color: #666;
+    margin: 5px 0;
+    font-style: italic;
 } 
