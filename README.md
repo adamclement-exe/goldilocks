@@ -43,42 +43,6 @@ This simulation aims to provide hands-on experience with:
 *   **Worker Capacity/Obstacles:** Workers have daily point limits, and random obstacles can reduce capacity or make workers unavailable.
 *   **Implementation Choices:** Some stories offer choices affecting effort, value, and the final visual/text output.
 
-## Features
-
-### Core Gameplay
-- Sprint planning and execution
-- Team capacity management
-- Story development workflow
-- Definition of Done (DoD) levels
-- Sprint reviews and retrospectives
-
-### Gamification Features
-
-#### Achievements
-- **Perfect Sprint**: Complete all planned stories in a sprint (50 points)
-- **Testing Master**: Complete testing on 3 stories in one day (30 points)
-- **Unblocking Hero**: Unblock 3 stories in one sprint (40 points)
-- **Story Flow**: Complete 5 stories in a row without blocking (35 points)
-- **Resource Master**: Use all team members perfectly for 3 days (45 points)
-
-#### Special Events
-- **Team Morale Boost**: All workers get +0.5 points for the day
-- **Testing Focus**: Testing effort reduced by 1 point for the day
-- **Creative Block**: Visual work capacity reduced by 50% for the day
-- **Pair Programming**: Two workers can collaborate with 1.5x efficiency
-
-#### Team Dynamics
-- **Mentoring**: Seniors boost junior capacity when working together
-- **Team Chemistry**: Workers in the same area get efficiency bonuses
-- **Burnout**: Overworked workers get temporary capacity reduction
-
-#### Visual Feedback
-- Animated celebrations for completed stories
-- Progress bars for team morale and story quality
-- Achievement badges and indicators
-- Sound effects for important events
-- Interactive UI elements with hover effects
-
 ## How to Play
 
 1.  **Run the Game:**

@@ -4,7 +4,6 @@ import * as GameState from './gameState.js';
 import * as UI from './ui.js';
 import * as Kanban from './kanban.js'; // Still needed for initialization
 import * as Simulation from './simulation.js';
-import * as VisualFeedback from './visualFeedback.js';
 import { initialProductBacklog } from './stories.js'; // Import the data
 
 // --- DOM Elements ---
@@ -44,7 +43,6 @@ function initializeGame() {
     
     // Initialize UI components
     UI.initializeGameUI();
-    VisualFeedback.initializeVisualFeedback();
     
     // Render initial state
     UI.renderAllColumns();
@@ -142,10 +140,5 @@ function handleRetroSubmit(event) {
 }
 
 // --- Game Start ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Make visual feedback functions available globally
-    window.visualFeedback = VisualFeedback;
-    initializeGame();
-});
-
+document.addEventListener('DOMContentLoaded', initializeGame);
 // --- END OF FILE main.js ---

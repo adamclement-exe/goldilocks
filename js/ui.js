@@ -62,11 +62,11 @@ const tutorialModals = {
             <h3>Welcome to the Achievements System!</h3>
             <p>As you play, you'll unlock achievements for completing special challenges:</p>
             <ul>
-                <li><strong>Perfect Sprint</strong>: Complete all planned stories in a sprint (50 points)</li>
-                <li><strong>Testing Master</strong>: Complete testing on 3 stories in one day (30 points)</li>
-                <li><strong>Unblocking Hero</strong>: Unblock 3 stories in one sprint (40 points)</li>
-                <li><strong>Story Flow</strong>: Complete 5 stories in a row without blocking (35 points)</li>
-                <li><strong>Resource Master</strong>: Use all team members perfectly for 3 days (45 points)</li>
+                <li><strong>Perfect Sprint</strong>: Complete all planned stories in a sprint</li>
+                <li><strong>Testing Master</strong>: Complete testing on 3 stories in one day</li>
+                <li><strong>Unblocking Hero</strong>: Unblock 3 stories in one sprint</li>
+                <li><strong>Story Flow</strong>: Complete 5 stories in a row without blocking</li>
+                <li><strong>Resource Master</strong>: Use all team members perfectly for 3 days</li>
             </ul>
             <p>Each achievement gives bonus points and helps you track your progress!</p>
         `
@@ -79,7 +79,7 @@ const tutorialModals = {
             <ul>
                 <li><strong>Team Morale Boost</strong>: All workers get +0.5 points for the day</li>
                 <li><strong>Testing Focus</strong>: Testing effort reduced by 1 point for the day</li>
-                <li><strong>Creative Block</strong>: Visual work capacity reduced by 50% for the day</li>
+                <li><strong>Creative Block</strong>: Visual work capacity reduced by 50%</li>
                 <li><strong>Pair Programming</strong>: Two workers can collaborate with 1.5x efficiency</li>
             </ul>
             <p>Adapt your strategy to make the most of these events!</p>
@@ -96,20 +96,6 @@ const tutorialModals = {
                 <li><strong>Burnout</strong>: Overworked workers get temporary capacity reduction</li>
             </ul>
             <p>Use these dynamics to optimize your team's performance!</p>
-        `
-    },
-    visualFeedback: {
-        title: "Visual Feedback",
-        content: `
-            <h3>Visual Feedback System</h3>
-            <p>The game provides various visual and audio feedback:</p>
-            <ul>
-                <li><strong>Celebration Effects</strong>: Animated particles when completing stories</li>
-                <li><strong>Progress Bars</strong>: Track team morale and story quality</li>
-                <li><strong>Sound Effects</strong>: Audio feedback for achievements and events</li>
-                <li><strong>Visual Indicators</strong>: Status badges and color coding</li>
-            </ul>
-            <p>Use the sound toggle in the top-right corner to control audio feedback!</p>
         `
     }
 };
