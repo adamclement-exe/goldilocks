@@ -54,6 +54,269 @@ const unblockingCostDisplay = document.getElementById('unblocking-cost-display')
 // Set to track pending unassignments in the Daily Scrum modal
 export let pendingUnassignments = new Set();
 
+// Tutorial Modals
+const tutorialModals = {
+    achievements: {
+        title: "Achievements System",
+        content: `
+            <h3>Welcome to the Achievements System!</h3>
+            <p>As you play, you'll unlock achievements for completing special challenges:</p>
+            <ul>
+                <li><strong>Perfect Sprint</strong>: Complete all planned stories in a sprint (50 points)</li>
+                <li><strong>Testing Master</strong>: Complete testing on 3 stories in one day (30 points)</li>
+                <li><strong>Unblocking Hero</strong>: Unblock 3 stories in one sprint (40 points)</li>
+                <li><strong>Story Flow</strong>: Complete 5 stories in a row without blocking (35 points)</li>
+                <li><strong>Resource Master</strong>: Use all team members perfectly for 3 days (45 points)</li>
+            </ul>
+            <p>Each achievement gives bonus points and helps you track your progress!</p>
+        `
+    },
+    events: {
+        title: "Special Events",
+        content: `
+            <h3>Special Events System</h3>
+            <p>Random events can occur during your sprint, affecting your team:</p>
+            <ul>
+                <li><strong>Team Morale Boost</strong>: All workers get +0.5 points for the day</li>
+                <li><strong>Testing Focus</strong>: Testing effort reduced by 1 point for the day</li>
+                <li><strong>Creative Block</strong>: Visual work capacity reduced by 50% for the day</li>
+                <li><strong>Pair Programming</strong>: Two workers can collaborate with 1.5x efficiency</li>
+            </ul>
+            <p>Adapt your strategy to make the most of these events!</p>
+        `
+    },
+    teamDynamics: {
+        title: "Team Dynamics",
+        content: `
+            <h3>Team Dynamics System</h3>
+            <p>Your team members interact in special ways:</p>
+            <ul>
+                <li><strong>Mentoring</strong>: Seniors boost junior capacity when working together</li>
+                <li><strong>Team Chemistry</strong>: Workers in the same area get efficiency bonuses</li>
+                <li><strong>Burnout</strong>: Overworked workers get temporary capacity reduction</li>
+            </ul>
+            <p>Use these dynamics to optimize your team's performance!</p>
+        `
+    },
+    visualFeedback: {
+        title: "Visual Feedback",
+        content: `
+            <h3>Visual Feedback System</h3>
+            <p>The game provides various visual and audio feedback:</p>
+            <ul>
+                <li><strong>Celebration Effects</strong>: Animated particles when completing stories</li>
+                <li><strong>Progress Bars</strong>: Track team morale and story quality</li>
+                <li><strong>Sound Effects</strong>: Audio feedback for achievements and events</li>
+                <li><strong>Visual Indicators</strong>: Status badges and color coding</li>
+            </ul>
+            <p>Use the sound toggle in the top-right corner to control audio feedback!</p>
+        `
+    }
+};
+
+// Achievement Display
+function createAchievementDisplay() {
+    const container = document.createElement('div');
+    container.id = 'achievement-display';
+    container.className = 'achievement-container';
+    
+    const header = document.createElement('h3');
+    header.textContent = 'Achievements';
+    container.appendChild(header);
+    
+    const list = document.createElement('ul');
+    list.id = 'achievement-list';
+    container.appendChild(list);
+    
+    return container;
+}
+
+// Event Display
+function createEventDisplay() {
+    const container = document.createElement('div');
+    container.id = 'event-display';
+    container.className = 'event-container';
+    
+    const header = document.createElement('h3');
+    header.textContent = 'Active Events';
+    container.appendChild(header);
+    
+    const list = document.createElement('ul');
+    list.id = 'event-list';
+    container.appendChild(list);
+    
+    return container;
+}
+
+// Team Dynamics Display
+function createTeamDynamicsDisplay() {
+    const container = document.createElement('div');
+    container.id = 'team-dynamics-display';
+    container.className = 'team-dynamics-container';
+    
+    const header = document.createElement('h3');
+    header.textContent = 'Team Dynamics';
+    container.appendChild(header);
+    
+    const list = document.createElement('ul');
+    list.id = 'team-dynamics-list';
+    container.appendChild(list);
+    
+    return container;
+}
+
+// Show Tutorial Modal
+export function showTutorialModal(topic) {
+    const modal = document.createElement('div');
+    modal.className = 'tutorial-modal';
+    
+    const content = document.createElement('div');
+    content.className = 'tutorial-content';
+    
+    const title = document.createElement('h2');
+    title.textContent = tutorialModals[topic].title;
+    content.appendChild(title);
+    
+    const body = document.createElement('div');
+    body.innerHTML = tutorialModals[topic].content;
+    content.appendChild(body);
+    
+    const closeButton = document.createElement('button');
+    closeButton.textContent = 'Got it!';
+    closeButton.onclick = () => modal.remove();
+    content.appendChild(closeButton);
+    
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+}
+
+// Update Achievement Display
+export function updateAchievementDisplay() {
+    const list = document.getElementById('achievement-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    const achievements = GameState.getAchievements();
+    
+    achievements.forEach(achievement => {
+        const item = document.createElement('li');
+        item.className = 'achievement-item';
+        
+        const name = document.createElement('span');
+        name.className = 'achievement-name';
+        name.textContent = achievement.name;
+        
+        const points = document.createElement('span');
+        points.className = 'achievement-points';
+        points.textContent = `+${achievement.points} points`;
+        
+        item.appendChild(name);
+        item.appendChild(points);
+        list.appendChild(item);
+    });
+}
+
+// Update Event Display
+export function updateEventDisplay() {
+    const list = document.getElementById('event-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    const activeEvents = GameState.getActiveEvents();
+    
+    activeEvents.forEach(event => {
+        const item = document.createElement('li');
+        item.className = 'event-item';
+        
+        const name = document.createElement('span');
+        name.className = 'event-name';
+        name.textContent = event.name;
+        
+        const duration = document.createElement('span');
+        duration.className = 'event-duration';
+        duration.textContent = `${event.duration} day(s) remaining`;
+        
+        item.appendChild(name);
+        item.appendChild(duration);
+        list.appendChild(item);
+    });
+}
+
+// Update Team Dynamics Display
+export function updateTeamDynamicsDisplay() {
+    const list = document.getElementById('team-dynamics-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    const dynamics = GameState.getTeamDynamics();
+    
+    Object.entries(dynamics).forEach(([key, active]) => {
+        if (active) {
+            const item = document.createElement('li');
+            item.className = 'dynamics-item';
+            
+            const name = document.createElement('span');
+            name.className = 'dynamics-name';
+            name.textContent = key;
+            
+            const description = document.createElement('span');
+            description.className = 'dynamics-description';
+            description.textContent = `Active: ${active}`;
+            
+            item.appendChild(name);
+            item.appendChild(description);
+            list.appendChild(item);
+        }
+    });
+}
+
+// Initialize UI Components
+export function initializeGameUI() {
+    // Get or create game container
+    let gameContainer = document.getElementById('game-container');
+    if (!gameContainer) {
+        gameContainer = document.createElement('div');
+        gameContainer.id = 'game-container';
+        document.body.appendChild(gameContainer);
+    }
+    
+    // Add displays to the game container
+    const achievementDisplay = createAchievementDisplay();
+    const eventDisplay = createEventDisplay();
+    const teamDynamicsDisplay = createTeamDynamicsDisplay();
+    
+    gameContainer.appendChild(achievementDisplay);
+    gameContainer.appendChild(eventDisplay);
+    gameContainer.appendChild(teamDynamicsDisplay);
+    
+    // Add tutorial buttons
+    const tutorialButtons = document.createElement('div');
+    tutorialButtons.className = 'tutorial-buttons';
+    
+    const achievementTutorial = document.createElement('button');
+    achievementTutorial.textContent = 'Achievements Help';
+    achievementTutorial.onclick = () => showTutorialModal('achievements');
+    
+    const eventTutorial = document.createElement('button');
+    eventTutorial.textContent = 'Events Help';
+    eventTutorial.onclick = () => showTutorialModal('events');
+    
+    const dynamicsTutorial = document.createElement('button');
+    dynamicsTutorial.textContent = 'Team Dynamics Help';
+    dynamicsTutorial.onclick = () => showTutorialModal('teamDynamics');
+    
+    tutorialButtons.appendChild(achievementTutorial);
+    tutorialButtons.appendChild(eventTutorial);
+    tutorialButtons.appendChild(dynamicsTutorial);
+    
+    gameContainer.appendChild(tutorialButtons);
+    
+    // Initial updates
+    updateAchievementDisplay();
+    updateEventDisplay();
+    updateTeamDynamicsDisplay();
+}
+
 // --- Rendering Functions ---
 // Generic list renderer
 function renderStoryList(listElement, stories) {
@@ -181,7 +444,7 @@ export function renderWorkers(workers) {
         workerElement.querySelector('.worker-name').textContent = worker.name;
         workerElement.querySelector('.worker-area').textContent = worker.area;
         workerElement.querySelector('.worker-skill').textContent = worker.skill;
-        workerElement.querySelector('.worker-points').textContent = worker.pointsPerDay;
+        workerElement.querySelector('.worker-points').textContent = Math.round(worker.pointsPerDay * 10) / 10; // Round to 1 decimal place
         workerElement.querySelector('.worker-avatar').style.backgroundColor = getWorkerColor(worker.id);
 
         const stateElement = workerElement.querySelector('.worker-state');
@@ -207,7 +470,7 @@ export function renderWorkers(workers) {
                  stateClass = 'working';
              }
         } else {
-            stateText = `Idle (${worker.dailyPointsLeft} pts left)`;
+            stateText = `Idle (${Math.round(worker.dailyPointsLeft * 10) / 10} pts left)`; // Round to 1 decimal place
             stateClass = 'idle';
         }
         stateElement.textContent = stateText;
@@ -313,22 +576,43 @@ export function moveCardToColumn(storyId, targetStatus, targetSubStatus = null) 
             const sourceScroll = sourceList ? sourceList.scrollTop : 0;
             const targetScroll = targetList.scrollTop;
 
-            targetList.appendChild(card); // Move the card element
-            card.dataset.status = targetStatus;
-            card.dataset.subStatus = targetSubStatus || 'none';
-            console.log(`UI: Moved card ${storyId} to list ${targetListId}`);
+            // Calculate the target position
+            const sourceRect = card.getBoundingClientRect();
+            const targetRect = targetList.getBoundingClientRect();
+            const xOffset = targetRect.left - sourceRect.left;
+            
+            // Store original position and add moving class
+            const originalPosition = card.getBoundingClientRect();
+            card.style.position = 'absolute';
+            card.style.left = `${originalPosition.left}px`;
+            card.style.top = `${originalPosition.top}px`;
+            card.classList.add('moving');
+            card.style.setProperty('--target-x', `${xOffset}px`);
+            
+            // Wait for animation to complete before moving the card
+            setTimeout(() => {
+                targetList.appendChild(card);
+                card.dataset.status = targetStatus;
+                card.dataset.subStatus = targetSubStatus || 'none';
+                card.classList.remove('moving');
+                card.style.removeProperty('--target-x');
+                card.style.position = '';
+                card.style.left = '';
+                card.style.top = '';
+                console.log(`UI: Moved card ${storyId} to list ${targetListId}`);
 
-            if (sourceList) sourceList.scrollTop = sourceScroll;
-            targetList.scrollTop = targetScroll;
+                if (sourceList) sourceList.scrollTop = sourceScroll;
+                targetList.scrollTop = targetScroll;
+            }, 2000); // Match this with the animation duration
 
         } else { // Already in correct list, just update data attributes
-             card.dataset.status = targetStatus;
-             card.dataset.subStatus = targetSubStatus || 'none';
+            card.dataset.status = targetStatus;
+            card.dataset.subStatus = targetSubStatus || 'none';
         }
         updateWipDisplays();
     } else {
-         console.warn(`UI Error: Could not move card ${storyId} to ${targetStatus}/${targetSubStatus}. Card or Target List (${targetListId}) not found.`);
-         renderAllColumns(); // Fallback
+        console.warn(`UI Error: Could not move card ${storyId} to ${targetStatus}/${targetSubStatus}. Card or Target List (${targetListId}) not found.`);
+        renderAllColumns(); // Fallback
     }
 }
 

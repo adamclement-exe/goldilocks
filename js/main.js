@@ -4,6 +4,7 @@ import * as GameState from './gameState.js';
 import * as UI from './ui.js';
 import * as Kanban from './kanban.js'; // Still needed for initialization
 import * as Simulation from './simulation.js';
+import * as VisualFeedback from './visualFeedback.js';
 import { initialProductBacklog } from './stories.js'; // Import the data
 
 // --- DOM Elements ---
@@ -33,14 +34,27 @@ const dodForm = document.getElementById('dod-form');
 const instructionsModal = document.getElementById('instructions-modal'); // New
 const startGameFromInstructionsBtn = document.getElementById('start-game-from-instructions-btn'); // New
 
-
-// --- Initialization ---
-function initGame() {
+// Initialize the game
+function initializeGame() {
     console.log("Initializing Game (Instructions & Multi-Assign)...");
     GameState.loadInitialState(initialProductBacklog); // Load state (resets DoD)
     UI.renderWorkers(GameState.getTeam()); // Render workers early
     Kanban.initializeKanbanBoards(null); // Initialize Kanban display (drag disabled)
     setupEventListeners();
+    
+    // Initialize UI components
+    UI.initializeGameUI();
+    VisualFeedback.initializeVisualFeedback();
+    
+    // Render initial state
+    UI.renderAllColumns();
+    UI.updateWipDisplays();
+    UI.updateSprintPlanningUI();
+    
+    // Show welcome tutorial
+    setTimeout(() => {
+        UI.showTutorialModal('achievements');
+    }, 1000);
 
     // --- Start Game with Instructions ---
     if (instructionsModal) {
@@ -77,7 +91,7 @@ function setupEventListeners() {
     retroForm.addEventListener('submit', handleRetroSubmit); // Retro Modal
     playAgainBtn.addEventListener('click', () => {
         UI.closeModal(finalBookModal);
-        initGame(); // Restart
+        initializeGame(); // Restart
     });
     nextDayBtn.addEventListener('click', Simulation.handleDayEnd); // Main button for end of work days
     confirmChoiceBtn.addEventListener('click', Simulation.confirmProceduralChoice); // Procedural Choice Modal
@@ -100,7 +114,6 @@ function setupEventListeners() {
             }
         });
     }
-
 
     console.log(">>> Event listeners setup complete.");
 }
@@ -128,7 +141,11 @@ function handleRetroSubmit(event) {
     }
 }
 
-
 // --- Game Start ---
-document.addEventListener('DOMContentLoaded', initGame);
+document.addEventListener('DOMContentLoaded', () => {
+    // Make visual feedback functions available globally
+    window.visualFeedback = VisualFeedback;
+    initializeGame();
+});
+
 // --- END OF FILE main.js ---

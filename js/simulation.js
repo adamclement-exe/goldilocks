@@ -303,25 +303,31 @@ function runWorkDaySimulation(workDayNum) {
 // Simulate Day Progress (Handles Multiple Workers & Sub-Statuses)
 function simulateDayProgress(workDayNum) {
     console.log(`--- Running Simulation for Work Day ${workDayNum} ---`);
-    const workers = GameState.getTeam();
-    const stories = GameState.getAllStories();
     let workDoneThisCycle = false;
+    const workers = GameState.getTeam();
 
-    workers.forEach(worker => {
-        if (!worker.available || worker.isUnblocking || worker.dailyPointsLeft <= 0) {
-             // console.log(`Skipping worker ${worker.name}: Available=${worker.available}, Unblocking=${worker.isUnblocking}, PointsLeft=${worker.dailyPointsLeft}`);
-             return;
+    // First, move all cards that need to move at the start of the day
+    const allStories = Object.values(GameState.getAllStories());
+    allStories.forEach(story => {
+        if (story.status === 'testing' && story.subStatus === 'done') {
+            console.log(`Auto-moving story ${story.id} from Testing(Done) to Final Done.`);
+            GameState.markStoryAsDone(story.id);
         }
+    });
 
-        if (worker.assignedStory) {
-            const story = stories[worker.assignedStory];
+    // Wait for animations to complete before starting work
+    setTimeout(() => {
+        workers.forEach(worker => {
+            if (!worker.available || worker.isUnblocking || worker.dailyPointsLeft <= 0) {
+                return;
+            }
 
-            // Check if story exists, is not blocked, and is in a 'doing' state
-            if (story && !story.isBlocked && story.subStatus === 'doing') {
+            const story = worker.assignedStory ? GameState.getStory(worker.assignedStory) : null;
+            if (story && story.status !== 'done' && !story.isBlocked) {
                 // Check if worker role matches the required work (Dev for 'inprogress', Tester for 'testing')
-                 const canWorkOnStatus = (worker.area !== 'Testing' && story.status === 'inprogress') || (worker.area === 'Testing' && story.status === 'testing');
+                const canWorkOnStatus = (worker.area !== 'Testing' && story.status === 'inprogress') || (worker.area === 'Testing' && story.status === 'testing');
 
-                 if (canWorkOnStatus) {
+                if (canWorkOnStatus) {
                     let pointsAvailable = worker.dailyPointsLeft;
                     if (pointsAvailable <= 0) return;
 
@@ -335,26 +341,18 @@ function simulateDayProgress(workDayNum) {
                     const storyCompleted = result.storyCompleted; // True if moved to final 'done'
 
                     if (pointsApplied > 0) {
-                         GameState.useWorkerPoints(worker.id, pointsApplied);
-                         workDoneThisCycle = true;
-                         // UI update will happen in the final renderAllColumns call
+                        GameState.useWorkerPoints(worker.id, pointsApplied);
+                        workDoneThisCycle = true;
                     }
 
                     if (storyCompleted) {
                         console.log(`Story ${story.title} fully completed (reached Final Done) by ${worker.name}.`);
-                        // Worker unassignment happens within setStoryState via markStoryAsDone
                     }
                     // If story moved to 'done' sub-state but not final done (e.g., ip-done, t-done)
                     else if (story.subStatus === 'done' && !storyCompleted && !story.assignedWorkers.includes(worker.id)) {
-                         console.log(`Work by ${worker.name} moved story ${story.title} to ${story.status}/${story.subStatus}. Worker automatically unassigned.`);
+                        console.log(`Work by ${worker.name} moved story ${story.title} to ${story.status}/${story.subStatus}. Worker automatically unassigned.`);
                     }
-
-                 } else {
-                      // This case should ideally not happen if assignment logic is correct
-                      console.warn(`Worker ${worker.name} (${worker.area}) assigned to story ${story.title}, but cannot work on state ${story.status}/${story.subStatus}.`);
-                      // GameState.unassignWorkerFromStory(story.id, worker.id); // Consider auto-unassigning?
-                 }
-
+                }
             } else if (story && story.isBlocked) {
                 console.log(`Worker ${worker.name} blocked on ${story.title}.`);
             } else if (story && story.subStatus !== 'doing') {
@@ -363,18 +361,18 @@ function simulateDayProgress(workDayNum) {
                 GameState.unassignWorkerFromStory(story.id, worker.id);
             }
             else if (!story && worker.assignedStory) {
-                 console.warn(`Worker ${worker.name} assigned to non-existent story ${worker.assignedStory}. Unassigning.`);
-                 worker.assignedStory = null;
+                console.warn(`Worker ${worker.name} assigned to non-existent story ${worker.assignedStory}. Unassigning.`);
+                worker.assignedStory = null;
             }
-        }
-    });
+        });
 
-    if (!workDoneThisCycle) console.log("No work progress made this cycle.");
-    console.log("--- End Day Simulation ---");
+        if (!workDoneThisCycle) console.log("No work progress made this cycle.");
+        console.log("--- End Day Simulation ---");
 
-    // Update UI after all work is done
-    UI.renderWorkers(GameState.getTeam());
-    UI.renderAllColumns(); // This handles moving cards between sub-columns visually
+        // Update UI after all work is done
+        UI.renderWorkers(GameState.getTeam());
+        UI.renderAllColumns(); // This handles moving cards between sub-columns visually
+    }, 500); // Wait for initial animations to complete
 }
 
 

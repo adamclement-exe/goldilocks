@@ -5,13 +5,13 @@ export const initialProductBacklog = [
     id_stub_for_scaling: "story-1", // Keep original ID reference if needed elsewhere
     title: "Catchy Cover Page",
     story: "As a reader, I want an exciting cover page, so that I am drawn to open the book.",
-    effort: 9, // Base effort (scaled mid-point)
+    effort: 6, // Reduced from 9
     value: 5,
     tags: ["Visual", "Design", "Marketing"],
     implementationChoices: [
-        { description: "Simple Title Text", effort: 3, impact: "A basic text cover." }, // 1 * 3
-        { description: "Title with Simple Sketch", effort: 9, impact: "A cover with a cute sketch of Goldilocks." }, // 3 * 3
-        { description: "Full Color Illustration", effort: 15, impact: "A vibrant, full-color cover illustration." } // 5 * 3
+        { description: "Simple Title Text", effort: 2, impact: "A basic text cover." },
+        { description: "Title with Simple Sketch", effort: 6, impact: "A cover with a cute sketch of Goldilocks." },
+        { description: "Full Color Illustration", effort: 10, impact: "A vibrant, full-color cover illustration." }
     ]
   },
   {
@@ -42,24 +42,24 @@ export const initialProductBacklog = [
     id_stub_for_scaling: "story-4",
     title: "Cottage Visual",
     story: "As a reader, I want to see the bears' cottage, so I can imagine the setting.",
-    effort: 9, // Base effort (scaled)
+    effort: 6, // Reduced from 9
     value: 3,
     tags: ["Visual", "Setting"],
      implementationChoices: [
-        { description: "Simple line drawing", effort: 6, impact: "A basic sketch shows the cottage exterior." }, // 2 * 3
-        { description: "Colorful cottage picture", effort: 12, impact: "A welcoming, colorful picture of the bears' cottage." } // 4 * 3
+        { description: "Simple line drawing", effort: 4, impact: "A basic sketch shows the cottage exterior." },
+        { description: "Colorful cottage picture", effort: 8, impact: "A welcoming, colorful picture of the bears' cottage." }
     ]
   },
   {
     id_stub_for_scaling: "story-5",
     title: "Porridge Testing Scene",
     story: "As a reader, I want Goldilocks to try the three porridges, so I experience the core conflict.",
-    effort: 12, // Base effort (scaled)
+    effort: 9, // Reduced from 12
     value: 5,
     tags: ["Text", "Plot", "Activity"],
      implementationChoices: [
-        { description: "Lists the results", effort: 6, impact: "Goldilocks tries the porridges: too hot, too cold, just right." }, // 2 * 3
-        { description: "Describes reactions vividly", effort: 12, impact: "Goldilocks' funny reactions to each porridge bowl are described." } // 4 * 3
+        { description: "Lists the results", effort: 4, impact: "Goldilocks tries the porridges: too hot, too cold, just right." },
+        { description: "Describes reactions vividly", effort: 9, impact: "Goldilocks' funny reactions to each porridge bowl are described." }
     ]
   },
    {
@@ -138,12 +138,12 @@ export const initialProductBacklog = [
     id_stub_for_scaling: "story-12",
     title: "Bears Discover Mess",
     story: "As a reader, I want the bears to discover the porridge, chairs, and beds, building the climax.",
-    effort: 15, // Base effort (scaled)
+    effort: 9, // Reduced from 15
     value: 5,
     tags: ["Text", "Plot", "Dialogue"],
      implementationChoices: [
-        { description: "List discoveries", effort: 9, impact: "The bears find the eaten porridge, broken chair, and used beds." }, // 3 * 3
-        { description: "Full dialogue sequence", effort: 15, impact: "'Somebody's been eating my porridge!' The bears' famous lines are included." } // 5 * 3
+        { description: "List discoveries", effort: 6, impact: "The bears find the eaten porridge, broken chair, and used beds." },
+        { description: "Full dialogue sequence", effort: 9, impact: "'Somebody's been eating my porridge!' The bears' famous lines are included." }
     ]
   },
    {
@@ -186,12 +186,12 @@ export const initialProductBacklog = [
     id_stub_for_scaling: "story-16",
     title: "Back Cover Blurb",
     story: "As a publisher, I want a catchy blurb on the back cover, to encourage purchases.",
-    effort: 6, // Base effort (scaled)
+    effort: 4, // Reduced from 6
     value: 2,
     tags: ["Marketing", "Text"],
      implementationChoices: [
-        { description: "Basic summary", effort: 3, impact: "A simple summary for the back cover." }, // 1 * 3
-        { description: "Engaging question", effort: 6, impact: "A catchy question on the back cover to entice readers." } // 2 * 3
+        { description: "Basic summary", effort: 2, impact: "A simple summary for the back cover." },
+        { description: "Engaging question", effort: 4, impact: "A catchy question on the back cover to entice readers." }
     ]
   }
 ];

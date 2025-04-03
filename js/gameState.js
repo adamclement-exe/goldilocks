@@ -25,6 +25,154 @@ const dodDefinitions = {
     }
 };
 
+// Achievement Definitions
+const achievementDefinitions = {
+    perfectSprint: {
+        id: 'perfectSprint',
+        name: 'Perfect Sprint',
+        description: 'Complete all planned stories in a sprint',
+        points: 50,
+        check: (state) => {
+            const sprintStories = state.sprintBacklog;
+            return sprintStories.every(story => story.status === 'done');
+        }
+    },
+    testingMaster: {
+        id: 'testingMaster',
+        name: 'Testing Master',
+        description: 'Complete testing on 3 stories in one day',
+        points: 30,
+        check: (state) => {
+            const today = state.currentDay;
+            const testedStories = Object.values(state.stories).filter(story => 
+                story.status === 'done' && story.testingCompletedDay === today
+            );
+            return testedStories.length >= 3;
+        }
+    },
+    unblockingHero: {
+        id: 'unblockingHero',
+        name: 'Unblocking Hero',
+        description: 'Unblock 3 stories in one sprint',
+        points: 40,
+        check: (state) => {
+            const sprintStories = state.sprintBacklog;
+            const unblockedStories = sprintStories.filter(story => 
+                story.wasBlocked && !story.isBlocked
+            );
+            return unblockedStories.length >= 3;
+        }
+    },
+    storyFlow: {
+        id: 'storyFlow',
+        name: 'Story Flow',
+        description: 'Complete 5 stories in a row without blocking',
+        points: 35,
+        check: (state) => {
+            const completedStories = Object.values(state.stories).filter(story => 
+                story.status === 'done'
+            ).sort((a, b) => b.completedDay - a.completedDay);
+            
+            let streak = 0;
+            for (let story of completedStories) {
+                if (story.wasBlocked) break;
+                streak++;
+                if (streak >= 5) return true;
+            }
+            return false;
+        }
+    },
+    resourceMaster: {
+        id: 'resourceMaster',
+        name: 'Resource Master',
+        description: 'Use all team members perfectly for 3 days',
+        points: 45,
+        check: (state) => {
+            const team = state.team;
+            const perfectDays = team.map(worker => worker.perfectDays || 0);
+            return perfectDays.every(days => days >= 3);
+        }
+    }
+};
+
+// Special Events
+const specialEvents = {
+    teamMoraleBoost: {
+        id: 'teamMoraleBoost',
+        name: 'Team Morale Boost',
+        description: 'Team is feeling motivated! All workers get +0.5 points for the day.',
+        effect: (state) => {
+            state.team.forEach(w => w.pointsPerDay += 0.5);
+        },
+        duration: 1
+    },
+    testingFocus: {
+        id: 'testingFocus',
+        name: 'Testing Focus',
+        description: 'Testing team is extra efficient! Testing effort reduced by 1 point for the day.',
+        effect: (state) => {
+            state.testingEffortModifier = -1;
+        },
+        duration: 1
+    },
+    creativeBlock: {
+        id: 'creativeBlock',
+        name: 'Creative Block',
+        description: 'Visual team is struggling! Visual work capacity reduced by 50% for the day.',
+        effect: (state) => {
+            state.team.forEach(w => {
+                if (w.area === 'Visual') w.pointsPerDay *= 0.5;
+            });
+        },
+        duration: 1
+    },
+    pairProgramming: {
+        id: 'pairProgramming',
+        name: 'Pair Programming',
+        description: 'Great collaboration! Two workers can work on same story with 1.5x efficiency.',
+        effect: (state) => {
+            state.pairProgrammingActive = true;
+        },
+        duration: 1
+    }
+};
+
+// Team Dynamics
+const teamDynamics = {
+    mentoring: {
+        id: 'mentoring',
+        name: 'Mentoring',
+        description: 'Seniors can boost junior capacity when working together',
+        effect: (senior, junior) => {
+            if (senior.skill === 'Senior' && junior.skill === 'Junior' && 
+                senior.area === junior.area) {
+                junior.pointsPerDay *= 1.5;
+            }
+        }
+    },
+    teamChemistry: {
+        id: 'teamChemistry',
+        name: 'Team Chemistry',
+        description: 'Workers who work well together get efficiency bonus',
+        effect: (worker1, worker2) => {
+            if (worker1.area === worker2.area) {
+                worker1.pointsPerDay *= 1.2;
+                worker2.pointsPerDay *= 1.2;
+            }
+        }
+    },
+    burnout: {
+        id: 'burnout',
+        name: 'Burnout',
+        description: 'Workers who are overworked get temporary capacity reduction',
+        effect: (worker) => {
+            if (worker.dailyPointsLeft === 0 && worker.assignedStory) {
+                worker.pointsPerDay *= 0.8;
+            }
+        }
+    }
+};
+
 // --- State Variables ---
 let state = {
     currentSprint: 1,
@@ -33,19 +181,19 @@ let state = {
     sprintBacklog: [], // IDs of stories committed to the sprint
     stories: {}, // Story objects keyed by ID
     team: [
-        { id: 'w1', name: 'Vicky Senior', area: 'Visual', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+        { id: 'w1', name: 'Vicky Senior', area: 'Visual', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
         { id: 'w2', name: 'Val Junior', area: 'Visual', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
-        { id: 'w3', name: 'Terry Senior', area: 'Text', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+        { id: 'w3', name: 'Terry Senior', area: 'Text', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
         { id: 'w4', name: 'Tom Junior', area: 'Text', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
-        { id: 'w5', name: 'Tessa Senior', area: 'Testing', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+        { id: 'w5', name: 'Tessa Senior', area: 'Testing', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
         { id: 'w6', name: 'Tim Junior', area: 'Testing', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
-        { id: 'w7', name: 'Wendy Senior', area: 'Text', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+        { id: 'w7', name: 'Wendy Senior', area: 'Text', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
         { id: 'w8', name: 'Walter Junior', area: 'Testing', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
     ],
     teamCapacity: 0,
     wipLimits: { // *** WIP Limits for 'Doing' sub-states ***
-        inprogress: 5, // Max in InProgress-Doing
-        testing: 3    // Max in Testing-Doing (Adjusted)
+        inprogress: 4, // Max in InProgress-Doing
+        testing: 2    // Max in Testing-Doing (Adjusted)
     },
     currentWip: { // Counts items ONLY in 'Doing' sub-states
         inprogress: 0,
@@ -60,10 +208,23 @@ let state = {
     dodBonusPoints: 0,
     dodMet: false,
     missingDodStories: [],
+    achievements: [],
+    activeEvents: [],
+    teamDynamics: {
+        mentoring: true,
+        teamChemistry: true,
+        burnout: true
+    },
+    storyBonuses: {
+        storyChain: 0,
+        visualHarmony: 0,
+        narrativeFlow: 0
+    },
+    pairProgrammingActive: false
 };
 
 // --- Constants ---
-const TESTING_EFFORT_PER_STORY = 1; // Base testing effort for simplicity
+const TESTING_EFFORT_PER_STORY = 2; // Base testing effort for simplicity
 export const UNBLOCKING_COST = 1;
 
 // --- Initialization ---
@@ -75,17 +236,17 @@ export function loadInitialState(initialBacklog) {
         sprintBacklog: [],
         stories: {},
         team: [
-            { id: 'w1', name: 'Vicky Senior', area: 'Visual', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+            { id: 'w1', name: 'Vicky Senior', area: 'Visual', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
             { id: 'w2', name: 'Val Junior', area: 'Visual', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
-            { id: 'w3', name: 'Terry Senior', area: 'Text', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+            { id: 'w3', name: 'Terry Senior', area: 'Text', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
             { id: 'w4', name: 'Tom Junior', area: 'Text', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
-            { id: 'w5', name: 'Tessa Senior', area: 'Testing', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+            { id: 'w5', name: 'Tessa Senior', area: 'Testing', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
             { id: 'w6', name: 'Tim Junior', area: 'Testing', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
-            { id: 'w7', name: 'Wendy Senior', area: 'Text', skill: 'Senior', pointsPerDay: 3, available: true, assignedStory: null, dailyPointsLeft: 3, isUnblocking: false },
+            { id: 'w7', name: 'Wendy Senior', area: 'Text', skill: 'Senior', pointsPerDay: 1.5, available: true, assignedStory: null, dailyPointsLeft: 1.5, isUnblocking: false },
             { id: 'w8', name: 'Walter Junior', area: 'Testing', skill: 'Junior', pointsPerDay: 1, available: true, assignedStory: null, dailyPointsLeft: 1, isUnblocking: false },
         ],
         teamCapacity: 0,
-        wipLimits: { inprogress: 5, testing: 3 }, // *** Updated WIP Limits ***
+        wipLimits: { inprogress: 4, testing: 2 }, // *** Updated WIP Limits ***
         currentWip: { inprogress: 0, testing: 0 },
         completedStories: [],
         currentSprintCompleted: [],
@@ -96,6 +257,19 @@ export function loadInitialState(initialBacklog) {
         dodBonusPoints: 0,
         dodMet: false,
         missingDodStories: [],
+        achievements: [],
+        activeEvents: [],
+        teamDynamics: {
+            mentoring: true,
+            teamChemistry: true,
+            burnout: true
+        },
+        storyBonuses: {
+            storyChain: 0,
+            visualHarmony: 0,
+            narrativeFlow: 0
+        },
+        pairProgrammingActive: false
     };
 
     let storyIdCounter = 1;
@@ -166,6 +340,15 @@ export function getAssignedWorkersForStory(storyId) {
     const story = getStory(storyId);
     if (!story || !story.assignedWorkers) return [];
     return story.assignedWorkers.map(id => getWorkerById(id)).filter(Boolean);
+}
+export function getAchievements() {
+    return state.achievements || [];
+}
+export function getActiveEvents() {
+    return state.activeEvents || [];
+}
+export function getTeamDynamics() {
+    return state.teamDynamics || {};
 }
 
 
@@ -540,6 +723,27 @@ export function advanceDay() {
         // Clean up expired obstacles
         state.obstacles = state.obstacles.filter(o => o.duration === undefined || o.duration > 0);
     }
+
+    // Check and apply team dynamics
+    applyTeamDynamics();
+    
+    // Update active events
+    state.activeEvents = state.activeEvents.filter(event => {
+        event.duration--;
+        return event.duration > 0;
+    });
+    
+    // 20% chance of random event each day
+    if (Math.random() < 0.2) {
+        triggerRandomEvent();
+    }
+    
+    // Check achievements
+    const newAchievements = checkAchievements();
+    if (newAchievements.length > 0) {
+        return { newAchievements };
+    }
+    return {};
 }
 
 
@@ -727,5 +931,58 @@ export function calculateAverageCycleTime() {
 
     if (validStoriesCount === 0) return null;
     return (totalCycleTimeDays / validStoriesCount).toFixed(1);
+}
+
+// Add new functions for achievements and events
+export function checkAchievements() {
+    const newAchievements = [];
+    Object.values(achievementDefinitions).forEach(achievement => {
+        if (!state.achievements.includes(achievement.id) && achievement.check(state)) {
+            newAchievements.push(achievement);
+            state.achievements.push(achievement.id);
+        }
+    });
+    return newAchievements;
+}
+
+export function triggerRandomEvent() {
+    const possibleEvents = Object.values(specialEvents);
+    const randomEvent = possibleEvents[Math.floor(Math.random() * possibleEvents.length)];
+    randomEvent.effect(state);
+    state.activeEvents.push({
+        id: randomEvent.id,
+        duration: randomEvent.duration
+    });
+    return randomEvent;
+}
+
+export function applyTeamDynamics() {
+    if (state.teamDynamics.mentoring) {
+        state.team.forEach(senior => {
+            if (senior.skill === 'Senior') {
+                state.team.forEach(junior => {
+                    if (junior.skill === 'Junior' && senior.area === junior.area) {
+                        teamDynamics.mentoring.effect(senior, junior);
+                    }
+                });
+            }
+        });
+    }
+    
+    if (state.teamDynamics.teamChemistry) {
+        state.team.forEach(worker1 => {
+            state.team.forEach(worker2 => {
+                if (worker1.id !== worker2.id) {
+                    teamDynamics.teamChemistry.effect(worker1, worker2);
+                }
+            });
+        });
+    }
+    
+    if (state.teamDynamics.burnout) {
+        state.team.forEach(worker => {
+            teamDynamics.burnout.effect(worker);
+        });
+    }
 }
 // --- END OF FILE gameState.js ---

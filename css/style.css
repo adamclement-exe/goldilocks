@@ -41,26 +41,24 @@ button {
 button:hover {
     background-color: #2980b9;
 }
+
 button:disabled {
     background-color: #bdc3c7;
     cursor: not-allowed;
 }
 
-dialog {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 25px;
-    min-width: 320px;
-    max-width: 700px; /* Slightly wider for multi-assign checkboxes */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.5);
-}
-dialog h2 {
-    margin-top: 0;
-    color: #3498db;
+/* Game Container */
+#game-container {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    background: #f5f5f5;
+    min-height: 100vh;
 }
 
 /* Header & Sprint Info */
@@ -75,18 +73,19 @@ header {
     align-items: center;
     border-bottom: 3px solid #3498db;
 }
+
 header h1 {
     flex-basis: 100%;
     margin-bottom: 10px;
     text-align: left;
 }
+
 @media (min-width: 600px) {
     header h1 {
         flex-basis: auto;
         margin-bottom: 0;
     }
 }
-
 
 #sprint-info {
     text-align: right;
@@ -107,11 +106,11 @@ header h1 {
     font-size: 0.95em;
     color: #555;
 }
+
 #sprint-info p span {
     font-weight: 600;
     color: #333;
 }
-
 
 /* Game Layout */
 .game-container {
@@ -141,6 +140,7 @@ header h1 {
     max-height: calc(100vh - 150px);
     overflow-y: auto;
 }
+
 #team-status h2 {
     font-size: 1.2em;
     border-bottom: 1px solid #eee;
@@ -150,7 +150,6 @@ header h1 {
     background-color: #ffffff;
     z-index: 1;
 }
-
 
 /* Kanban Columns & Lists */
 .kanban-column-container,
@@ -163,10 +162,11 @@ header h1 {
 }
 
 .kanban-column {
-     flex: 1;
-     display: flex;
-     flex-direction: column;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
+
 .kanban-column h3 {
     font-size: 1.1em;
     text-align: center;
@@ -189,13 +189,13 @@ header h1 {
     border: 1px solid #bdc3c7;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 .wip-limit.exceeded {
     color: white;
     font-weight: bold;
     background-color: #e74c3c;
     border-color: #c0392b;
 }
-
 
 .story-list {
     min-height: 150px;
@@ -228,12 +228,12 @@ header h1 {
     border-left-color: orange !important;
     box-shadow: 0 2px 6px rgba(255, 165, 0, 0.3);
 }
+
 .story-card .story-age.aging {
     border: 1px solid #e74c3c;
     background-color: #fbeeef;
     color: #c0392b;
 }
-
 
 .story-card h4 {
     margin-bottom: 4px;
@@ -248,423 +248,450 @@ header h1 {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    margin-bottom: 4px;
-    gap: 5px 10px;
-}
-.story-meta span span {
-    font-weight: bold;
-    color: #555;
-}
-.story-age {
-    font-size: 0.8em;
-    color: #999;
-    background-color: #f0f0f0;
-    padding: 0 4px;
-    border-radius: 3px;
-    font-style: italic;
 }
 
-.story-tags {
-    margin-bottom: 4px;
-    line-height: 1.5;
+/* Story Card Animation */
+@keyframes dragToNewColumn {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    20% {
+        transform: translate(calc(var(--target-x) * 0.1), -50px) rotate(-5deg);
+        opacity: 0.95;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    40% {
+        transform: translate(calc(var(--target-x) * 0.3), -80px) rotate(5deg);
+        opacity: 0.9;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+    }
+    60% {
+        transform: translate(calc(var(--target-x) * 0.7), -80px) rotate(-5deg);
+        opacity: 0.9;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+    }
+    80% {
+        transform: translate(calc(var(--target-x) * 0.9), -50px) rotate(5deg);
+        opacity: 0.95;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    90% {
+        transform: translate(var(--target-x), -20px) rotate(0deg);
+        opacity: 1;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    95% {
+        transform: translate(var(--target-x), -10px) rotate(0deg);
+        opacity: 1;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    100% {
+        transform: translate(var(--target-x), 0) rotate(0deg);
+        opacity: 1;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 }
 
-.tag {
-    display: inline-block;
-    font-size: 0.8em;
-    padding: 1px 5px;
-    border-radius: 10px;
-    color: white;
-    margin-right: 3px;
-    margin-bottom: 2px;
+.story-card {
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    transform-origin: center center;
 }
 
-/* Tag Colors */
-.tag-visual { background-color: #3498db; }
-.tag-text { background-color: #2ecc71; }
-.tag-activity { background-color: #f1c40f; color: #333; }
-.tag-marketing { background-color: #9b59b6; }
-.tag-design { background-color: #e74c3c; }
-.tag-character { background-color: #1abc9c; }
-.tag-plot { background-color: #e67e22; }
-.tag-setting { background-color: #7f8c8d; }
-.tag-dialogue { background-color: #34495e; }
-.tag-climax { background-color: #c0392b; }
-.tag-resolution { background-color: #27ae60; }
-.tag-testing { background-color: #f39c12; }
-
-
-/* Worker Assignment Styling */
-.story-assignment {
-    font-size: 0.9em;
-    color: #888;
-    margin-top: 4px;
-    margin-bottom: 4px;
-    line-height: 1.6; /* Better spacing for pills */
-}
-/* Target the span holding the pills */
-.story-assignment .story-worker {
-    font-style: normal; /* Remove italic */
-    color: inherit; /* Inherit color from parent */
+.story-card.moving {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+    animation: dragToNewColumn 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    will-change: transform, opacity, box-shadow;
+    background-color: white;
 }
 
-/* Worker Pill Styling */
-.worker-pill {
-    display: inline-block;
-    font-size: 0.8em;
-    padding: 1px 6px;
-    border-radius: 10px;
-    color: white;
-    margin-right: 3px;
-    margin-bottom: 3px; /* Spacing between pills */
-    font-weight: 500;
-    text-shadow: 0 1px 1px rgba(0,0,0,0.2); /* Subtle shadow */
-    border: 1px solid rgba(0,0,0,0.1);
-}
-
-
-/* Blocker Info Styling */
-.blocker-info {
-    color: orange;
-    font-weight: bold;
-    font-size: 0.9em;
-    margin-top: 4px;
-    display: none; /* Hidden by default, shown by JS */
-}
-
-
-/* Progress Bar Styling */
-.story-progress, .story-testing-progress {
-    margin-top: 5px;
-    font-size: 0.85em;
-}
-.story-progress label, .story-testing-progress label {
-    display: inline-block;
-    width: 35px;
-    color: #555;
-    font-weight: 500;
-}
-.story-progress progress, .story-testing-progress progress {
-    width: calc(100% - 90px); /* Adjusted width */
-    height: 10px;
-    vertical-align: middle;
-    margin: 0 5px;
-    border-radius: 5px;
-    overflow: hidden; /* Ensure border radius applies */
-}
-/* Progress bar colors */
-progress::-webkit-progress-bar {
-    background-color: #eee;
-    border-radius: 5px;
-}
-progress.dev-progress::-webkit-progress-value {
-    background-color: #2ecc71; /* Green for dev */
-    border-radius: 5px;
-    transition: width 0.3s ease;
-}
-progress.test-progress::-webkit-progress-value {
-    background-color: #f39c12; /* Orange for testing */
-    border-radius: 5px;
-     transition: width 0.3s ease;
-}
-/* Firefox specific */
-progress.dev-progress::-moz-progress-bar {
-    background-color: #2ecc71;
-    border-radius: 5px;
-     transition: width 0.3s ease;
-}
-progress.test-progress::-moz-progress-bar {
-    background-color: #f39c12;
-    border-radius: 5px;
-     transition: width 0.3s ease;
-}
-
-
-/* Style for points remaining spans */
-.dev-points-remaining, .test-points-remaining {
-    display: inline-block;
-    width: 40px;
-    text-align: right;
-    color: #555;
-    font-weight: 500;
-    font-size: 0.9em;
-    vertical-align: middle;
-}
-
-
-/* SortableJS Helper Class (Not used visually now) */
-.sortable-ghost {
-    opacity: 0.4;
-    background: #c8ebfb;
-}
-
-/* Worker Status */
-.worker-status {
-    background-color: #f8f9fa;
-    padding: 8px;
-    margin-bottom: 5px;
-    border-radius: 3px;
-    font-size: 0.9em;
-    border-left: 4px solid #bdc3c7;
-    transition: border-color 0.3s ease;
-}
-/* Update border colors based on data-state attribute set by JS */
-.worker-status[data-state="idle"] { border-left-color: #2ecc71; } /* Green */
-.worker-status[data-state="working"] { border-left-color: #3498db; } /* Blue */
-.worker-status[data-state="unavailable"] { border-left-color: #e74c3c; } /* Red */
-.worker-status[data-state="unblocking"] { border-left-color: #f39c12; } /* Orange */
-.worker-status[data-state="blocked"] { border-left-color: #e74c3c; } /* Red (when assigned to blocked story) */
-
-.worker-avatar {
-    display: inline-block;
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    margin-right: 5px;
-    vertical-align: middle;
-    border: 1px solid #ccc;
-}
-
-
-/* Assignment/Reassignment Modal Item Spacing & Styling */
-.assignment-item, .reassignment-item, .blocker-assignment-item {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
-}
-.assignment-item:last-child, .reassignment-item:last-child, .blocker-assignment-item:last-child {
-    border-bottom: none; /* Remove border from last item */
-}
-
-/* Label for the whole section (e.g., "Assign Workers:") */
-.assignment-item > label, .reassignment-item > label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px;
-}
-
-/* Container for checkboxes */
-.worker-checkbox-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px 15px; /* Row and column gap */
-    padding-left: 10px; /* Indent checkboxes slightly */
-}
-
-/* Individual checkbox + label wrapper */
-.worker-checkbox-option {
-    display: flex; /* Align checkbox and label */
-    align-items: center;
-}
-.worker-checkbox-option input[type="checkbox"] {
-    margin-right: 5px;
-    cursor: pointer;
-}
-.worker-checkbox-option label {
-    font-weight: normal; /* Normal weight for worker names */
-    cursor: pointer;
-}
-.worker-checkbox-option input[type="checkbox"]:disabled + label {
-    color: #aaa; /* Gray out text for disabled workers */
-    cursor: not-allowed;
-    text-decoration: line-through; /* Optional: strike-through */
-}
-
-/* Blocker assignment select styling (remains mostly the same) */
-.blocker-assignment-item label {
-    margin-right: 5px;
-    font-weight: 500;
-}
-.blocker-assignment-item select {
-    padding: 4px 6px;
-    margin-left: 5px;
-    min-width: 180px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-.blocker-assignment-item select option:disabled {
-    color: #aaa;
-    background-color: #f8f8f8;
-}
-
-/* Styling for Daily Scrum Reassignment Sections */
-.reassignment-item .current-workers-list,
-.reassignment-item .add-workers-list {
-    margin-top: 8px;
-    padding-left: 10px;
-}
-.reassignment-item .current-workers-list label,
-.reassignment-item .add-workers-list label {
-    font-weight: 500; /* Slightly bolder label for sections */
-    display: block;
-    margin-bottom: 5px;
-}
-/* Styling for the "keep" checkbox/label in reassignment */
-.worker-remove-label {
-    display: inline-flex; /* Align checkbox and pill */
-    align-items: center;
-    margin-left: 3px;
-    margin-right: 10px; /* Space between workers */
-    cursor: pointer;
-}
-.worker-remove-label input[type="checkbox"] {
-    margin-right: 4px;
-    cursor: pointer;
-}
-/* Make the worker pill part of the label */
-.worker-remove-label .worker-pill {
-    vertical-align: middle;
-}
-
-
-/* Retrospective Text Areas */
-#retro-form textarea {
-    width: 95%;
-    min-height: 60px;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    font-family: inherit;
-    font-size: 0.95em;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-#retro-form label {
-    display: block;
-    margin-bottom: 3px;
-    font-weight: 600;
-    margin-left: 2.5%;
-}
-
-
-/* Final Storybook Preview */
-#review-storybook-preview, #final-storybook-pages {
-    border: 1px dashed #ccc;
+/* Achievement Display */
+.achievement-container {
+    background: #f8f9fa;
+    border-radius: 8px;
     padding: 15px;
-    min-height: 100px;
-    margin-top: 10px;
-    background-color: #fff;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    max-height: 400px;
-    overflow-y: auto;
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.storybook-page-preview {
-    border: 1px solid #eee;
-    padding: 10px;
-    text-align: center;
-    max-width: 180px;
-    background-color: #fdfdfd;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    border-radius: 4px;
+.achievement-item {
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
-    min-height: 180px;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    background: white;
+    border-radius: 4px;
+    border-left: 4px solid #4CAF50;
 }
 
-.storybook-page-preview h5 {
-    font-size: 1em;
-    margin-bottom: 8px;
+.achievement-name {
+    font-weight: bold;
     color: #333;
 }
 
-.storybook-page-preview img {
-    max-width: 100%;
-    height: auto;
-    margin-bottom: 8px;
-    border-radius: 3px;
-    object-fit: contain;
-    max-height: 100px;
-    flex-shrink: 0;
+.achievement-points {
+    color: #4CAF50;
+    font-weight: bold;
 }
 
-.storybook-page-preview p {
-    font-size: 0.85em;
-    color: #444;
-    flex-grow: 1;
-    margin-top: auto;
-    text-align: left;
-    hyphens: auto;
-    word-break: break-word;
+/* Event Display */
+.event-container {
+    background: #e3f2fd;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* DoD Status in Final Modal */
-#final-storybook-pages > div:first-child { /* Target the DoD status div */
-     width: 100%;
-     border: 1px solid #ccc;
-     background-color: #f9f9f9;
-     border-radius: 4px;
-     padding: 15px;
-     margin-bottom: 20px;
+.event-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    background: white;
+    border-radius: 4px;
+    border-left: 4px solid #2196F3;
 }
-#final-storybook-pages > div:first-child h3 {
-    margin-top: 0;
-    color: #3498db;
+
+.event-name {
+    font-weight: bold;
+    color: #333;
 }
-#final-storybook-pages > div:first-child ul {
-    margin-top: 5px;
+
+.event-duration {
+    color: #2196F3;
+    font-size: 0.9em;
+}
+
+/* Team Dynamics Display */
+.team-dynamics-container {
+    background: #fff3e0;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.dynamics-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    margin: 5px 0;
+    background: white;
+    border-radius: 4px;
+    border-left: 4px solid #FF9800;
+}
+
+.dynamics-name {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.dynamics-description {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Tutorial Modals */
+.tutorial-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+}
+
+.tutorial-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.tutorial-content h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.tutorial-content h3 {
+    color: #2196F3;
+    margin: 15px 0 10px;
+}
+
+.tutorial-content p {
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+.tutorial-content ul {
+    margin: 10px 0;
     padding-left: 20px;
-    list-style: disc;
 }
 
+.tutorial-content li {
+    margin: 8px 0;
+}
 
-/* Responsive adjustments */
-@media (max-width: 1100px) {
+.tutorial-content button {
+    background: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.tutorial-content button:hover {
+    background: #1976D2;
+}
+
+/* Tutorial Buttons */
+.tutorial-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 10px;
+}
+
+.tutorial-buttons button {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.tutorial-buttons button:hover {
+    background: #e0e0e0;
+}
+
+/* Modals */
+.modal {
+    position: fixed;
+    z-index: 1000;
+}
+
+/* Ensure tutorial modals appear above other modals */
+.tutorial-modal {
+    z-index: 1001;
+}
+
+/* Visual Feedback */
+@keyframes celebration {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes streakPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes achievementUnlock {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.progress-container {
+    width: 100%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.3s ease;
+}
+
+.streak-indicator {
+    display: inline-block;
+    padding: 4px 8px;
+    background-color: #FFC107;
+    color: #333;
+    border-radius: 4px;
+    font-weight: bold;
+    animation: streakPulse 2s infinite;
+}
+
+.achievement-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+.celebration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.celebration-particle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: #FFC107;
+    border-radius: 50%;
+    animation: celebration 1s ease-out forwards;
+}
+
+/* Team Morale and Story Quality Indicators */
+.team-morale-indicator,
+.story-quality-indicator {
+    position: fixed;
+    bottom: 20px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.team-morale-indicator {
+    left: 20px;
+}
+
+.story-quality-indicator {
+    right: 20px;
+}
+
+/* Sound Controls */
+.sound-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Achievement Badge */
+.achievement-badge {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    animation: achievementUnlock 1s ease-out forwards;
+    z-index: 1000;
+}
+
+/* Story Card Enhancements */
+.story-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.story-card .status-indicator {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.story-card .status-indicator.blocked {
+    background-color: #FF9800;
+}
+
+.story-card .status-indicator.testing {
+    background-color: #2196F3;
+}
+
+.story-card .status-indicator.done {
+    background-color: #4CAF50;
+}
+
+/* Worker Status Enhancements */
+.worker-status {
+    position: relative;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.worker-status:hover {
+    background-color: #e9ecef;
+}
+
+.worker-status .status-indicator {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.worker-status .status-indicator.available {
+    background-color: #4CAF50;
+}
+
+.worker-status .status-indicator.working {
+    background-color: #2196F3;
+}
+
+.worker-status .status-indicator.unavailable {
+    background-color: #f44336;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
     .game-container {
         flex-direction: column;
     }
-     .kanban-board-container {
-       flex-direction: row;
-       overflow-x: auto;
-       padding-bottom: 10px;
-    }
-    .kanban-column {
-        min-width: 200px;
-        max-width: 280px;
-    }
-     #team-status {
-        min-width: unset;
-        width: 100%;
-        max-height: 250px;
-    }
-    .story-list {
-         max-height: 300px;
-    }
-}
 
-@media (max-width: 768px) {
-    .kanban-column {
-        min-width: 180px;
-    }
-    header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    header h1 { text-align: center; }
-    #sprint-info { text-align: center; margin-top: 10px; }
+    #product-backlog-column,
     #team-status {
-         max-height: 200px;
+        min-width: 100%;
     }
-    dialog {
-        min-width: 90%;
-        max-width: 95%;
+
+    .kanban-board-container {
+        flex-direction: column;
     }
-     #retro-form textarea, #retro-form label {
-        width: 90%;
-        margin-left: 5%;
-        margin-right: 5%;
-     }
-    /* Improve checkbox layout on small screens */
-    .worker-checkbox-container {
-        display: grid; /* Switch to grid for better control */
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive columns */
-        gap: 5px;
-        padding-left: 0; /* Remove indent on small screens */
+
+    .kanban-column {
+        min-height: 200px;
     }
 }
 /* --- END OF FILE style.css --- */
