@@ -69,22 +69,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 8px;
     margin: 5px 0;
-    background-color: white;
+    background: white;
     border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     border-left: 4px solid #4CAF50;
 }
 
 .achievement-name {
-    font-weight: 500;
+    font-weight: bold;
     color: #333;
 }
 
 .achievement-points {
-    color: #666;
-    font-size: 0.9em;
+    color: #4CAF50;
+    font-weight: bold;
 }
 
 /* Event Display */
@@ -100,21 +99,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
+    padding: 8px;
     margin: 5px 0;
-    background-color: white;
+    background: white;
     border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     border-left: 4px solid #2196F3;
 }
 
 .event-name {
-    font-weight: 500;
+    font-weight: bold;
     color: #333;
 }
 
 .event-duration {
-    color: #666;
+    color: #2196F3;
     font-size: 0.9em;
 }
 
@@ -130,25 +128,22 @@
 .dynamics-item {
     display: flex;
     flex-direction: column;
-    padding: 10px;
-    margin: 8px 0;
-    background-color: white;
+    padding: 8px;
+    margin: 5px 0;
+    background: white;
     border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     border-left: 4px solid #FF9800;
 }
 
 .dynamics-name {
-    font-weight: 500;
+    font-weight: bold;
     color: #333;
-    margin-bottom: 6px;
-    font-size: 1.1em;
+    margin-bottom: 4px;
 }
 
 .dynamics-description {
     color: #666;
     font-size: 0.9em;
-    line-height: 1.4;
 }
 
 /* Tutorial Modals */
@@ -258,34 +253,4 @@
 /* Ensure tutorial modals appear above other modals */
 .tutorial-modal {
     z-index: 1001;
-}
-
-.empty-message {
-    color: #666;
-    font-style: italic;
-    padding: 10px;
-    text-align: center;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    margin: 5px 0;
-}
-
-#achievement-display, #event-display, #team-dynamics-display {
-    background-color: #fff3e0;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-#achievement-display h3, #event-display h3, #team-dynamics-display h3 {
-    color: #333;
-    margin-bottom: 10px;
-    font-size: 1.2em;
-}
-
-#achievement-list, #event-list, #team-dynamics-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
 } 

@@ -51,7 +51,7 @@ function initializeGame() {
     
     // Show welcome tutorial
     setTimeout(() => {
-        UI.showTutorialModal('help');
+        UI.showTutorialModal('achievements');
     }, 1000);
 
     // --- Start Game with Instructions ---

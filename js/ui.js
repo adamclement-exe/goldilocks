@@ -55,7 +55,50 @@ const unblockingCostDisplay = document.getElementById('unblocking-cost-display')
 export let pendingUnassignments = new Set();
 
 // Tutorial Modals
-const tutorialModals = {};
+const tutorialModals = {
+    achievements: {
+        title: "Achievements System",
+        content: `
+            <h3>Welcome to the Achievements System!</h3>
+            <p>As you play, you'll unlock achievements for completing special challenges:</p>
+            <ul>
+                <li><strong>Perfect Sprint</strong>: Complete all planned stories in a sprint</li>
+                <li><strong>Testing Master</strong>: Complete testing on 3 stories in one day</li>
+                <li><strong>Unblocking Hero</strong>: Unblock 3 stories in one sprint</li>
+                <li><strong>Story Flow</strong>: Complete 5 stories in a row without blocking</li>
+                <li><strong>Resource Master</strong>: Use all team members perfectly for 3 days</li>
+            </ul>
+            <p>Each achievement gives bonus points and helps you track your progress!</p>
+        `
+    },
+    events: {
+        title: "Special Events",
+        content: `
+            <h3>Special Events System</h3>
+            <p>Random events can occur during your sprint, affecting your team:</p>
+            <ul>
+                <li><strong>Team Morale Boost</strong>: All workers get +0.5 points for the day</li>
+                <li><strong>Testing Focus</strong>: Testing effort reduced by 1 point for the day</li>
+                <li><strong>Creative Block</strong>: Visual work capacity reduced by 50%</li>
+                <li><strong>Pair Programming</strong>: Two workers can collaborate with 1.5x efficiency</li>
+            </ul>
+            <p>Adapt your strategy to make the most of these events!</p>
+        `
+    },
+    teamDynamics: {
+        title: "Team Dynamics",
+        content: `
+            <h3>Team Dynamics System</h3>
+            <p>Your team members interact in special ways:</p>
+            <ul>
+                <li><strong>Mentoring</strong>: Seniors boost junior capacity when working together</li>
+                <li><strong>Team Chemistry</strong>: Workers in the same area get efficiency bonuses</li>
+                <li><strong>Burnout</strong>: Overworked workers get temporary capacity reduction</li>
+            </ul>
+            <p>Use these dynamics to optimize your team's performance!</p>
+        `
+    }
+};
 
 // Achievement Display
 function createAchievementDisplay() {
@@ -141,14 +184,6 @@ export function updateAchievementDisplay() {
     list.innerHTML = '';
     const achievements = GameState.getAchievements();
     
-    if (achievements.length === 0) {
-        const emptyMessage = document.createElement('li');
-        emptyMessage.className = 'empty-message';
-        emptyMessage.textContent = 'No achievements unlocked yet. Keep playing to earn them!';
-        list.appendChild(emptyMessage);
-        return;
-    }
-    
     achievements.forEach(achievement => {
         const item = document.createElement('li');
         item.className = 'achievement-item';
@@ -174,14 +209,6 @@ export function updateEventDisplay() {
     
     list.innerHTML = '';
     const activeEvents = GameState.getActiveEvents();
-    
-    if (activeEvents.length === 0) {
-        const emptyMessage = document.createElement('li');
-        emptyMessage.className = 'empty-message';
-        emptyMessage.textContent = 'No active events at the moment. Events occur randomly during the sprint.';
-        list.appendChild(emptyMessage);
-        return;
-    }
     
     activeEvents.forEach(event => {
         const item = document.createElement('li');
@@ -209,50 +236,24 @@ export function updateTeamDynamicsDisplay() {
     list.innerHTML = '';
     const dynamics = GameState.getTeamDynamics();
     
-    // Define the team dynamics with their proper names and descriptions
-    const dynamicsInfo = {
-        mentoring: {
-            name: "Mentoring",
-            description: "Senior team members boost junior capacity by 50% when working in the same area"
-        },
-        teamChemistry: {
-            name: "Team Chemistry",
-            description: "Workers in the same area get a 20% efficiency bonus when working together"
-        },
-        burnout: {
-            name: "Burnout",
-            description: "Overworked workers (no points left) get a 20% capacity reduction"
-        }
-    };
-    
-    let hasActiveDynamics = false;
-    
     Object.entries(dynamics).forEach(([key, active]) => {
         if (active) {
-            hasActiveDynamics = true;
             const item = document.createElement('li');
             item.className = 'dynamics-item';
             
             const name = document.createElement('span');
             name.className = 'dynamics-name';
-            name.textContent = dynamicsInfo[key]?.name || key;
+            name.textContent = key;
             
             const description = document.createElement('span');
             description.className = 'dynamics-description';
-            description.textContent = dynamicsInfo[key]?.description || '';
+            description.textContent = `Active: ${active}`;
             
             item.appendChild(name);
             item.appendChild(description);
             list.appendChild(item);
         }
     });
-    
-    if (!hasActiveDynamics) {
-        const emptyMessage = document.createElement('li');
-        emptyMessage.className = 'empty-message';
-        emptyMessage.textContent = 'No team dynamics are currently active.';
-        list.appendChild(emptyMessage);
-    }
 }
 
 // Initialize UI Components
@@ -273,6 +274,28 @@ export function initializeGameUI() {
     gameContainer.appendChild(achievementDisplay);
     gameContainer.appendChild(eventDisplay);
     gameContainer.appendChild(teamDynamicsDisplay);
+    
+    // Add tutorial buttons
+    const tutorialButtons = document.createElement('div');
+    tutorialButtons.className = 'tutorial-buttons';
+    
+    const achievementTutorial = document.createElement('button');
+    achievementTutorial.textContent = 'Achievements Help';
+    achievementTutorial.onclick = () => showTutorialModal('achievements');
+    
+    const eventTutorial = document.createElement('button');
+    eventTutorial.textContent = 'Events Help';
+    eventTutorial.onclick = () => showTutorialModal('events');
+    
+    const dynamicsTutorial = document.createElement('button');
+    dynamicsTutorial.textContent = 'Team Dynamics Help';
+    dynamicsTutorial.onclick = () => showTutorialModal('teamDynamics');
+    
+    tutorialButtons.appendChild(achievementTutorial);
+    tutorialButtons.appendChild(eventTutorial);
+    tutorialButtons.appendChild(dynamicsTutorial);
+    
+    gameContainer.appendChild(tutorialButtons);
     
     // Initial updates
     updateAchievementDisplay();
@@ -780,7 +803,7 @@ export function populateWorkerAssignmentModal(storiesToAssign, availableWorkers)
                 checkbox.dataset.storyId = story.id; checkbox.dataset.workerId = worker.id;
                 const label = document.createElement('label'); label.htmlFor = checkbox.id;
                 const specialtyMatch = storyTags.includes(worker.area);
-                label.textContent = `${worker.name} (${worker.skill[0]} ${Math.round(worker.pointsPerDay)}pts)${specialtyMatch ? ' ✨' : ''}`;
+                label.textContent = `${worker.name} (${worker.skill[0]} ${worker.pointsPerDay}pts)${specialtyMatch ? ' ✨' : ''}`;
                 optionDiv.appendChild(checkbox); optionDiv.appendChild(label);
                 checkboxContainer.appendChild(optionDiv);
             }
@@ -1077,7 +1100,7 @@ function updateDailyScrumCheckboxes() {
 
                 const label = document.createElement('label'); label.htmlFor = checkbox.id;
                 const storyTags = Array.isArray(story.tags) ? story.tags : []; const specialtyMatch = storyTags.includes(worker.area);
-                label.textContent = `${worker.name} (${worker.skill[0]} ${Math.round(worker.pointsPerDay)}pts)${specialtyMatch ? ' ✨' : ''}`;
+                label.textContent = `${worker.name} (${worker.skill[0]} ${worker.pointsPerDay}pts)${specialtyMatch ? ' ✨' : ''}`;
                  label.style.textDecoration = checkbox.disabled ? 'line-through' : 'none';
                  label.style.color = checkbox.disabled ? '#aaa' : 'inherit';
 
